@@ -5,45 +5,32 @@ using namespace std;
 void inicializarMatriz(int *matriz[][10],int nMemoria,int nBloque);
 void esAcierto(int  *matriz[][10],int nMemoria,int nBloque);
 void seguimientodDireccion(int *matriz[][10],int nMemoria,int nBloque);
+void seguimientodDireccionAsociativaCompleta(int *matriz[][10],int nBloque,int i);
 void imprimirDireccionDeMemoria(int *matriz[][10],int nMemoria,int nBloque);
+void distribuccionMemoriaModulo(int *matriz[][10],int nMemoria,int nBloque);
+void distribuccionMemoriaModuloDosVias(int *matriz[][10],int nMemoria,int modulo);
 void distribuccionMemoria(int *matriz[][10],int nMemoria,int nBloque);
+void correspondenciaDirecta(int *bloques[][10],int bloque);
+void correspondenciaAsociativaCompleta(int *bloques[][10],int bloque);
+void correspondenciaAsociativaDosVias(int *bloques[][10],int bloque);
 //Variables Glogables
 string acierto[10];
-vector<int> memoria,direccionMemoria;
+vector<int> direccionMemoria;
+int memoria[] = { 12, 56, 584, 21, 456, 24, 145, 568, 4, 5, 21, 45,14, 58, 74, 11, 22, 66, 55, 77, 89, 66, 44, 55, 22, 8, 4, 2, 3, 1};
 int main(){
-	int bloque,direccion,asignacion,*bloques[10][10],k = -1;
+	int bloque,direccion,asignacion,*bloques[10][10],k = -1,nDireccion;
 	bool band = true;
 	cout<<"Ingrese el numero de Bloque:";
 	cin>>bloque;
-	cout<<"Ingrese la dirrecion de memoria:"<<endl;
-	for(int i=0;i<bloque+1;i++){
+	cout<<"Ingrese el numero de dirrecion de memoria:"<<endl;
+	cin>>nDireccion;
+	for(int i=0;i<nDireccion;i++){
 		cin>>direccion;
 		direccionMemoria.push_back(direccion); //agrego a la ultima posicion de direccionMemoria
-		memoria.push_back(i);	//agrego a la ultima posicion de memoria
 	}
-	inicializarMatriz(bloques,direccionMemoria.size(),bloque);
-	cout<<"correspondencia directa"<<endl;
-	distribuccionMemoria(bloques,direccionMemoria.size(),4);
-	seguimientodDireccion(bloques,direccionMemoria.size(),bloque);
-	acierto[0] = "fallo";
-	esAcierto(bloques,direccionMemoria.size(),bloque);
-	//imprimirDireccionDeMemoria(bloques,direccionMemoria.size(),bloque);
-	for(int i=0;i<direccionMemoria.size();i++){// imprimir memoria
-		cout<<direccionMemoria[i]<<"\t"<<acierto[i]<<"\t";
-		k = direccionMemoria[i];
-		for(int j=0;j<bloque;j++){
-			if(bloques[i][j] != NULL){
-				if(bloques[i][j] == bloques[i-1][j]){
-					cout<<"Memoria["<<direccionMemoria[i-1]<<"]\t";
-				}else{
-					cout<<"Memoria["<<k<<"]\t";	
-				}
-			}else{
-				cout<<"\t";
-			}
-		}
-		cout<<endl;
-	}
+	correspondenciaDirecta(bloques,bloque);
+	correspondenciaAsociativaCompleta(bloques,bloque);
+	correspondenciaAsociativaDosVias(bloques,bloque);
 	cout<<"listo"<<endl;
 	return 0;
 }
@@ -82,6 +69,14 @@ void seguimientodDireccion(int *matriz[][10],int nMemoria,int nBloque){
 		}	
 	}
 }	
+void seguimientodDireccionAsociativaCompleta(int *matriz[][10],int nBloque,int i){
+		for(int j=0;j<nBloque;j++){
+			if((matriz[i][j] == NULL) && (matriz[i-1][j] != NULL)){
+				matriz[i][j] = matriz[i-1][j];
+			}
+		}	
+	
+}
 void imprimirDireccionDeMemoria(int *matriz[][10],int nMemoria,int nBloque){
 	for(int i=0;i< nMemoria;i++){//imprimir con dirrecion de memoria
 		cout<<direccionMemoria[i]<<"\t"<<acierto[i]<<"\t";
@@ -91,10 +86,115 @@ void imprimirDireccionDeMemoria(int *matriz[][10],int nMemoria,int nBloque){
 		cout<<endl;
 	}
 }
-void distribuccionMemoria(int *matriz[][10],int nMemoria,int modulo){
+void distribuccionMemoriaModulo(int *matriz[][10],int nMemoria,int modulo){
 	int asignacion;
 	for(int i=0;i<nMemoria;i++){//agrego las direcciones de memorias a la matriz
 		asignacion = direccionMemoria[i] % modulo;
-		matriz[i][asignacion] = &memoria[direccionMemoria[i]];	
+		matriz[i][asignacion] = &memoria[direccionMemoria[i]];
 	}
+}
+void distribuccionMemoriaModuloDosVias(int *matriz[][10],int nMemoria,int modulo){ //Falta establecer una política de reemplazos.
+	int asignacion,n0 = 0,n1 = 0,k = 0;
+	for(int i=0;i<nMemoria;i++){//agrego las direcciones de memorias a la matriz
+		asignacion = direccionMemoria[i] % modulo;
+		switch (asignacion){
+			case 0:	
+				if((n0 == 1)){
+					matriz[i][asignacion+1] = &memoria[direccionMemoria[i]];
+					n0--;
+				}else{
+					matriz[i][asignacion] = &memoria[direccionMemoria[i]];
+					n0++;
+				}
+				break;
+			case 1:	
+				if(n1 == 1){
+					matriz[i][asignacion+2] = &memoria[direccionMemoria[i]];
+					n1--;
+				}else{
+					matriz[i][asignacion+1] = &memoria[direccionMemoria[i]];
+					n1++;
+				}
+				break;
+		}
+			
+	}
+}
+
+void correspondenciaDirecta(int *bloques[][10],int bloque){
+	int k = -1;
+	bool band = true;
+	inicializarMatriz(bloques,direccionMemoria.size(),bloque);
+	cout<<"correspondencia directa"<<endl;
+	distribuccionMemoriaModulo(bloques,direccionMemoria.size(),4);
+	seguimientodDireccion(bloques,direccionMemoria.size(),bloque);
+	acierto[0] = "fallo";
+	esAcierto(bloques,direccionMemoria.size(),bloque);
+	imprimirDireccionDeMemoria(bloques,direccionMemoria.size(),bloque);
+	/*for(int i=0;i<direccionMemoria.size();i++){// imprimir memoria
+		cout<<direccionMemoria[i]<<"\t"<<acierto[i]<<"\t";
+		k = direccionMemoria[i];
+		for(int j=0;j<bloque;j++){
+			if(bloques[i][j] != NULL){
+				if(bloques[i][j] == bloques[i-1][j]){
+					cout<<"Memoria["<<direccionMemoria[i-1]<<"]\t";
+				}else{
+					cout<<"Memoria["<<k<<"]\t";	
+				}
+			}else{
+				cout<<"\t";
+			}
+		}
+		cout<<endl;
+	}*/	
+}
+void distribuccionMemoria(int *matriz[][10],int nMemoria,int nBloque){
+	int asignacion;
+	int i = 0,j = 0,k = 0,t = 0;
+	bool band =true;
+	while( i<nMemoria){
+		band = true;
+		j=0;
+		while((j<nBloque) && (band == true)){
+			if((i == 0) && (j == 0)){
+				matriz[i][j] = &memoria[direccionMemoria[i]];
+				band = false;
+			}else{
+				if(  matriz[i][j] == &memoria[direccionMemoria[i]]){ 
+					band = false;
+				}else if((matriz[i][j] == NULL) && (matriz[i-1][j] == NULL)){
+					matriz[i][j] = &memoria[direccionMemoria[i]];
+					band = false;
+				}
+			}
+			j++;
+		}
+		if(band == true){
+			matriz[i][k] = &memoria[direccionMemoria[i]];
+			k++;
+		}
+		i++;
+		seguimientodDireccionAsociativaCompleta(matriz,nBloque,i);
+	}
+}
+
+
+void correspondenciaAsociativaCompleta(int *bloques[][10],int bloque){
+	inicializarMatriz(bloques,direccionMemoria.size(),bloque);
+	cout<<"correspondencia Asociativa Completa"<<endl;
+	distribuccionMemoria(bloques,direccionMemoria.size(),bloque);
+	acierto[0] = "fallo";
+	esAcierto(bloques,direccionMemoria.size(),bloque);
+	imprimirDireccionDeMemoria(bloques,direccionMemoria.size(),bloque);
+}
+
+
+void correspondenciaAsociativaDosVias(int *bloques[][10],int bloque){
+	inicializarMatriz(bloques,direccionMemoria.size(),bloque);
+	cout<<"correspondencia Asociativa Dos Vias"<<endl;
+	distribuccionMemoriaModuloDosVias(bloques,direccionMemoria.size(),2);
+	seguimientodDireccion(bloques,direccionMemoria.size(),bloque);
+	acierto[0] = "fallo";
+	esAcierto(bloques,direccionMemoria.size(),bloque);
+	imprimirDireccionDeMemoria(bloques,direccionMemoria.size(),bloque);
 }
