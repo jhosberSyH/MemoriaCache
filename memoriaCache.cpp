@@ -69,7 +69,11 @@ void esAcierto(int  *matriz[][30],int nMemoria,int nBloque){
 		i++;
 	}
 }	
+<<<<<<< HEAD
 void seguimientodDireccion(int *matriz[][30],int nMemoria,int nBloque){
+=======
+void seguimientodDireccion(int *matriz[][10],int nMemoria,int nBloque){
+>>>>>>> c24afc24fdd99c348bdfd282f47ec0bbf9b833a0
 	for(int i=1;i<nMemoria;i++){//Seguimiento de la direcion anterios en el caso de ser NULL
 		for(int j=0;j<nBloque;j++){
 			if((matriz[i][j] == NULL) && (matriz[i-1][j] != NULL)){
@@ -86,6 +90,7 @@ void seguimientodDireccionAsociativaCompleta(int *matriz[][30],int nBloque,int i
 		}	
 	
 }
+<<<<<<< HEAD
 void imprimirDireccionDeMemoria(int *matriz[][30],int nMemoria,int nBloque){
 	cout<<"Direccion del bloque \t"<<"Acierto\t\t"<<"Contenido de los bloque\t"<<endl;
 	cout<<"de memoria accedido\t"<<"o fallo\t\t"<<"de cache despues de cada acceso\t"<<endl<<endl;
@@ -96,6 +101,11 @@ void imprimirDireccionDeMemoria(int *matriz[][30],int nMemoria,int nBloque){
 	cout<<endl<<endl;
 	for(int i=0;i< nMemoria;i++){//Imprime con dirrecion de memoria
 		cout<<"\t"<<direccionMemoria[i]<<"\t\t"<<acierto[i]<<"\t\t\t";
+=======
+void imprimirDireccionDeMemoria(int *matriz[][10],int nMemoria,int nBloque){
+	for(int i=0;i< nMemoria;i++){//Imprime con dirrecion de memoria
+		cout<<direccionMemoria[i]<<"\t"<<acierto[i]<<"\t";
+>>>>>>> c24afc24fdd99c348bdfd282f47ec0bbf9b833a0
 		for(int j=0;j<nBloque;j++){
 			if(matriz[i][j] != NULL){
 				cout<<matriz[i][j]<<"\t";
@@ -106,6 +116,7 @@ void imprimirDireccionDeMemoria(int *matriz[][30],int nMemoria,int nBloque){
 		cout<<endl;
 	}
 }
+<<<<<<< HEAD
 void imprimirDireccionDeMemoriaDosVias(int *matriz[][30],int nMemoria,int nBloque){
 	cout<<"Direccion del bloque \t"<<"Acierto\t\t"<<"Contenido de los bloque\t"<<endl;
 	cout<<"de memoria accedido\t"<<"o fallo\t\t"<<"de cache despues de cada acceso\t"<<endl<<endl;
@@ -135,26 +146,49 @@ void imprimirNormalxD(int *matriz[][30],int nMemoria,int nBloque){
 		for(int j=0;j<nBloque;j++){
 			if(matriz[i][j] != NULL){
 				if(matriz[i][j] == matriz[i-1][j]){
+=======
+
+void imprimirNormalxD(int *matriz[][10],int nMemoria,int nBloque){
+	int k = -1;
+	for(int i=0;i<direccionMemoria.size();i++){//Imprime memoria
+		cout<<direccionMemoria[i]<<"\t"<<acierto[i]<<"\t";
+		k = direccionMemoria[i];
+		for(int j=0;j<nBloque;j++){
+			if(bloques[i][j] != NULL){
+				if(bloques[i][j] == bloques[i-1][j]){
+>>>>>>> c24afc24fdd99c348bdfd282f47ec0bbf9b833a0
 					cout<<"Memoria["<<direccionMemoria[i-1]<<"]\t";
 				}else{
 					cout<<"Memoria["<<k<<"]\t";	
 				}
 			}else{
+<<<<<<< HEAD
 				cout<<" \t";
+=======
+				cout<<"\t";
+>>>>>>> c24afc24fdd99c348bdfd282f47ec0bbf9b833a0
 			}
 		}
 		cout<<endl;
 	}	
 }
 
+<<<<<<< HEAD
 void distribuccionMemoriaModulo(int *matriz[][30],int nMemoria,int modulo){
+=======
+void distribuccionMemoriaModulo(int *matriz[][10],int nMemoria,int modulo){
+>>>>>>> c24afc24fdd99c348bdfd282f47ec0bbf9b833a0
 	int asignacion;
 	for(int i=0;i<nMemoria;i++){//Agrega las direcciones de memorias a la matriz
 		asignacion = direccionMemoria[i] % modulo;
 		matriz[i][asignacion] = &memoria[direccionMemoria[i]];
 	}
 }
+<<<<<<< HEAD
 void distribuccionMemoriaModuloDosVias(int *matriz[][30],int nMemoria,int modulo){ //Falta establecer una pol�tica de reemplazos.
+=======
+void distribuccionMemoriaModuloDosVias(int *matriz[][10],int nMemoria,int modulo){ //Falta establecer una pol�tica de reemplazos.
+>>>>>>> c24afc24fdd99c348bdfd282f47ec0bbf9b833a0
 	int asignacion,n0 = 0,n1 = 0,k = 0;
 	for(int i=0;i<nMemoria;i++){//Agrega las direcciones de memorias a la matriz
 		asignacion = direccionMemoria[i] % modulo;
@@ -192,8 +226,27 @@ void correspondenciaDirecta(int *bloques[][30],int bloque){
 	acierto[0] = "fallo";
 	esAcierto(bloques,direccionMemoria.size(),bloque);
 	imprimirDireccionDeMemoria(bloques,direccionMemoria.size(),bloque);
+<<<<<<< HEAD
 	//imprimirNormalxD(bloques,direccionMemoria.size(),bloque);
 	cout<<endl;
+=======
+	for(int i=0;i<direccionMemoria.size();i++){// imprimir memoria
+		cout<<direccionMemoria[i]<<"\t"<<acierto[i]<<"\t";
+		k = direccionMemoria[i];
+		for(int j=0;j<bloque;j++){
+			if(bloques[i][j] != NULL){
+				if(bloques[i][j] == bloques[i-1][j]){
+					cout<<"Memoria["<<direccionMemoria[i-1]<<"]\t";
+				}else{
+					cout<<"Memoria["<<k<<"]\t";	
+				}
+			}else{
+				cout<<"\t";
+			}
+		}
+		cout<<endl;
+	}	
+>>>>>>> c24afc24fdd99c348bdfd282f47ec0bbf9b833a0
 }
 void distribuccionMemoria(int *matriz[][30],int nMemoria,int nBloque){
 	int asignacion;
@@ -233,7 +286,11 @@ void correspondenciaAsociativaCompleta(int *bloques[][30],int bloque){
 	acierto[0] = "fallo";
 	esAcierto(bloques,direccionMemoria.size(),bloque);
 	imprimirDireccionDeMemoria(bloques,direccionMemoria.size(),bloque);
+<<<<<<< HEAD
 	//imprimirNormalxD(bloques,direccionMemoria.size(),bloque);
+=======
+	void imprimirNormalxD(bloques,direccionMemoria.size(),bloque);
+>>>>>>> c24afc24fdd99c348bdfd282f47ec0bbf9b833a0
 }
 
 
@@ -244,8 +301,12 @@ void correspondenciaAsociativaDosVias(int *bloques[][30],int bloque){
 	seguimientodDireccion(bloques,direccionMemoria.size(),bloque);
 	acierto[0] = "fallo";
 	esAcierto(bloques,direccionMemoria.size(),bloque);
+<<<<<<< HEAD
 	imprimirDireccionDeMemoriaDosVias(bloques,direccionMemoria.size(), bloque);
 	//imprimirDireccionDeMemoria(bloques,direccionMemoria.size(),bloque);
 	//imprimirNormalxD(bloques,direccionMemoria.size(),bloque);
+=======
+	imprimirDireccionDeMemoria(bloques,direccionMemoria.size(),bloque);
+>>>>>>> c24afc24fdd99c348bdfd282f47ec0bbf9b833a0
 	
 }
