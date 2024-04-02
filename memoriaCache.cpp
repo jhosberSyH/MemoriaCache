@@ -45,7 +45,7 @@ void inicializarMatriz(int *matriz[][10],int nMemoria,int nBloque){
 void esAcierto(int  *matriz[][10],int nMemoria,int nBloque){
 	int i = 1,j = 0;
 	bool band;
-	while( i<nMemoria){//compruba si es acierto o no
+	while( i<nMemoria){//Compruba si es acierto o no
 		band = true;
 		j=0;
 		while((j<nBloque) && (band == true)){
@@ -61,7 +61,7 @@ void esAcierto(int  *matriz[][10],int nMemoria,int nBloque){
 	}
 }	
 void seguimientodDireccion(int *matriz[][10],int nMemoria,int nBloque){
-	for(int i=1;i<nMemoria;i++){//sigo el seguimiento de la dirrecion anterios en el caso de ser NULL
+	for(int i=1;i<nMemoria;i++){//Seguimiento de la direcion anterios en el caso de ser NULL
 		for(int j=0;j<nBloque;j++){
 			if((matriz[i][j] == NULL) && (matriz[i-1][j] != NULL)){
 				matriz[i][j] = matriz[i-1][j];
@@ -78,7 +78,7 @@ void seguimientodDireccionAsociativaCompleta(int *matriz[][10],int nBloque,int i
 	
 }
 void imprimirDireccionDeMemoria(int *matriz[][10],int nMemoria,int nBloque){
-	for(int i=0;i< nMemoria;i++){//imprimir con dirrecion de memoria
+	for(int i=0;i< nMemoria;i++){//Imprime con dirrecion de memoria
 		cout<<direccionMemoria[i]<<"\t"<<acierto[i]<<"\t";
 		for(int j=0;j<nBloque;j++){
 			cout<<matriz[i][j]<<"\t";
@@ -86,16 +86,37 @@ void imprimirDireccionDeMemoria(int *matriz[][10],int nMemoria,int nBloque){
 		cout<<endl;
 	}
 }
+
+void imprimirNormalxD(int *matriz[][10],int nMemoria,int nBloque){
+	int k = -1;
+	for(int i=0;i<direccionMemoria.size();i++){//Imprime memoria
+		cout<<direccionMemoria[i]<<"\t"<<acierto[i]<<"\t";
+		k = direccionMemoria[i];
+		for(int j=0;j<nBloque;j++){
+			if(bloques[i][j] != NULL){
+				if(bloques[i][j] == bloques[i-1][j]){
+					cout<<"Memoria["<<direccionMemoria[i-1]<<"]\t";
+				}else{
+					cout<<"Memoria["<<k<<"]\t";	
+				}
+			}else{
+				cout<<"\t";
+			}
+		}
+		cout<<endl;
+	}	
+}
+
 void distribuccionMemoriaModulo(int *matriz[][10],int nMemoria,int modulo){
 	int asignacion;
-	for(int i=0;i<nMemoria;i++){//agrego las direcciones de memorias a la matriz
+	for(int i=0;i<nMemoria;i++){//Agrega las direcciones de memorias a la matriz
 		asignacion = direccionMemoria[i] % modulo;
 		matriz[i][asignacion] = &memoria[direccionMemoria[i]];
 	}
 }
-void distribuccionMemoriaModuloDosVias(int *matriz[][10],int nMemoria,int modulo){ //Falta establecer una política de reemplazos.
+void distribuccionMemoriaModuloDosVias(int *matriz[][10],int nMemoria,int modulo){ //Falta establecer una polï¿½tica de reemplazos.
 	int asignacion,n0 = 0,n1 = 0,k = 0;
-	for(int i=0;i<nMemoria;i++){//agrego las direcciones de memorias a la matriz
+	for(int i=0;i<nMemoria;i++){//Agrega las direcciones de memorias a la matriz
 		asignacion = direccionMemoria[i] % modulo;
 		switch (asignacion){
 			case 0:	
@@ -131,7 +152,7 @@ void correspondenciaDirecta(int *bloques[][10],int bloque){
 	acierto[0] = "fallo";
 	esAcierto(bloques,direccionMemoria.size(),bloque);
 	imprimirDireccionDeMemoria(bloques,direccionMemoria.size(),bloque);
-	/*for(int i=0;i<direccionMemoria.size();i++){// imprimir memoria
+	for(int i=0;i<direccionMemoria.size();i++){// imprimir memoria
 		cout<<direccionMemoria[i]<<"\t"<<acierto[i]<<"\t";
 		k = direccionMemoria[i];
 		for(int j=0;j<bloque;j++){
@@ -146,7 +167,7 @@ void correspondenciaDirecta(int *bloques[][10],int bloque){
 			}
 		}
 		cout<<endl;
-	}*/	
+	}	
 }
 void distribuccionMemoria(int *matriz[][10],int nMemoria,int nBloque){
 	int asignacion;
@@ -186,6 +207,7 @@ void correspondenciaAsociativaCompleta(int *bloques[][10],int bloque){
 	acierto[0] = "fallo";
 	esAcierto(bloques,direccionMemoria.size(),bloque);
 	imprimirDireccionDeMemoria(bloques,direccionMemoria.size(),bloque);
+	void imprimirNormalxD(bloques,direccionMemoria.size(),bloque);
 }
 
 
@@ -197,4 +219,5 @@ void correspondenciaAsociativaDosVias(int *bloques[][10],int bloque){
 	acierto[0] = "fallo";
 	esAcierto(bloques,direccionMemoria.size(),bloque);
 	imprimirDireccionDeMemoria(bloques,direccionMemoria.size(),bloque);
+	
 }
