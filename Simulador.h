@@ -6,6 +6,7 @@
 #include <string>
 #include<cmath>
 #include <bitset>
+#include <sstream>
 using namespace std;
 class Simulador{
 	private:
@@ -87,5 +88,24 @@ class Simulador{
 			}
 		}
 /*********************************************************************************************************************************************************************/
+
+using namespace std;
+
+long int DirHexToDec(string direccionHex) {
+
+    // Elimina el prefijo "0x" si está presente
+    if (direccionHex.substr(0, 2) == "0x") {
+        direccionHex = direccionHex.substr(2);
+    }
+
+    // Convierte el número hexadecimal a decimal
+    long int decimal;
+    istringstream(direccionHex) >> hex >> decimal;
+
+    return decimal;
+}
+
+
+
 };
 #endif 
