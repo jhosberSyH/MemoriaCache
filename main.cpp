@@ -5,10 +5,16 @@
 using namespace std;
 
 int main() {
-    Simulador memoriaCache(4,2);
-    long int valor = 0000000000000000000000000000000;
-    memoriaCache.MemoriaDrirecta(valor);
-
+    Simulador memoriaCache(4,8);
+    long int valor = 0;
+    cout<<"bienvenido"<<endl;
+    for(int i = 0;i<5;i++){
+    	cin>>valor;
+    	memoriaCache.MemoriaDrirecta(valor);
+	}
+	cout<<"miss:"<<memoriaCache.getMiss()<<endl;
+	cout<<"hit:"<<memoriaCache.getHit()<<endl;
+	//cout<<"etiqueta"<<memoriaCache.getEtiqueta()<<endl;
     return 0;
 }
 
