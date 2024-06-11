@@ -10,7 +10,7 @@ class Cache{
 	//Constructores
 		Cache(){
 			this->validez = false;
-			this->etiqueta = 0;
+			this->etiqueta = -1;
 		}
 		Cache(long int etq,bool val){
 			this->validez = val;

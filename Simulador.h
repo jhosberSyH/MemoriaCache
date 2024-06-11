@@ -2,6 +2,10 @@
 #define Simulador_h
 #include<iostream>
 #include "Cache.h"
+#include "Pila.cpp"
+#include "Pila.h"
+#include "Nodo.cpp"
+#include "Nodo.h"
 #include <vector>
 #include <string>
 #include<cmath>
@@ -10,11 +14,12 @@
 using namespace std;
 class Simulador{
 	private:
+		//atributos
 		int numeroBloques;
 		int tamBloques;
 		int hit;
 		int miss;
-		Cache cache[10];
+		Cache cache[30];
 	public:
 /**********-***********************************************************************************************************************************************************/
 	//Constructores
@@ -30,7 +35,7 @@ class Simulador{
 			this->hit = 0;
 			this->miss = 0;
 			for(int i = 0;i<nBloques;i++){
-				this->cache[i].setEtiqueta(0);
+				this->cache[i].setEtiqueta(-1);
 				this->cache[i].setValidez(false);
 			}
 		}
@@ -64,22 +69,20 @@ class Simulador{
 			desplazamiento = log2(this->tamBloques);
             auxEtiqueta = direccion >> desplazamiento;
             index = auxEtiqueta % this->numeroBloques;
-            std::cout<<"Desplazamiento: "<<desplazamiento<<endl;
-            std::cout<<"indice:"<<index<<endl;
+            //std::cout<<"Desplazamiento: "<<desplazamiento<<endl;
+           // std::cout<<"indice:"<<index<<endl;
             if((this->cache[index].getValidez()) && (this->cache[index].getEtiqueta() == auxEtiqueta) ){
-            	//std::cout<<"paso3";
             	result = true;
 			}else{
-				//std::cout<<"paso 4";
 				this->cache[index].setEtiqueta(auxEtiqueta);
 				this->cache[index].setValidez(true);
 				result = false;
 			}
-			cout<<"Etiqueta:"<<this->cache[index].getEtiqueta()<<endl;
+			//cout<<"Etiqueta:"<<this->cache[index].getEtiqueta()<<endl;
             return (result);
 			
 		}
-		void MemoriaDrirecta(long int direccion){
+		void MemoriaDirecta(long int direccion){
 			bool bandera = directa(direccion);
 			if(bandera){
 				this->hit++;
@@ -88,8 +91,106 @@ class Simulador{
 			}
 		}
 /*********************************************************************************************************************************************************************/
+		void MemoriaAsociativaConjuntos(long int direccion,int nConjuntos){
+			bool bandera = conjunto(direccion,nConjuntos);
+			if(bandera){
+				this->hit++;
+			}else{
+				this->miss++;
+			}
+		}
+		
+		bool conjunto(long int direccion,int nConjunto){
+			long int auxEtiqueta;
+			bool auxValidez,result = false,band = false,bandVacio = true;
+			int desplazamiento,index,carriles,auxIndex = 0;
+			Pila<long int> reciente;
+			carriles = this->numeroBloques / nConjunto;
+			desplazamiento = log2(this->tamBloques);
+            auxEtiqueta = direccion >> desplazamiento;
+            index = auxEtiqueta % carriles;
+			band = buscar(index,carriles,auxEtiqueta);
+            if(band){
+            	result = true;
+			}else{
+				bandVacio = buscar(index,carriles,-1);
+				if(bandVacio){
+					reciente.apilar(auxEtiqueta);
+					auxIndex = buscarposicion(index,carriles,-1);
+					this->cache[auxIndex].setEtiqueta(auxEtiqueta);
+				}else{
+					reciente.apilar(auxEtiqueta);
+					buscarRemplazo(reciente,index,carriles,auxEtiqueta);
+					reciente.desapilar();
+				}
+			}
+            return (result);
+			
+		}
+		bool buscar(int index,int carriles,long int valor){
+			bool result = false;
+			int i = index;
+			while((!result) && (i<carriles)){
+				if(this->cache[i].getEtiqueta() == valor){
+					result = true;
+				}
+				i++;
+			}
+			return result;
+		}
+		int buscarposicion(int index,int carriles,long int valor){
+			int i = index, result = 0;
+			while((!result) && (i<carriles)){
+				if(this->cache[i].getEtiqueta() == valor){
+					result = i;
+				}
+				i++;
+			}
+			return result;
+		}
+		void buscarRemplazo(Pila<long int> reciente,int index,int carriles,long int valor){
+			bool band = false;
+			int i = index;
+			while((!band) && (i<carriles)){
+				if(this->cache[i].getEtiqueta() == reciente.tope()){
+					this->cache[i].setEtiqueta(valor);
+				}
+				i++;
+			}
+		}
+/*********************************************************************************************************************************************************************/
+	void MemoriaCompletamenteAsociativa(long int direccion){
+			bool bandera = completaAsociativa(direccion);
+			if(bandera){
+				this->hit++;
+			}else{
+				this->miss++;
+			}
+		}
+		
+		bool completaAsociativa(long int direccion){
+			long int auxEtiqueta;
+			bool auxValidez,result = false;
+			int desplazamiento,index;
+			desplazamiento = log2(this->tamBloques);
+            auxEtiqueta = direccion >> desplazamiento;
+            index = this->buscarposicion(0,this->numeroBloques,-1);
+            //std::cout<<"Desplazamiento: "<<desplazamiento<<endl;
+           // std::cout<<"indice:"<<index<<endl;
+            if(index == 0 ){
+            	result = true;
+			}else{
+				this->cache[index].setEtiqueta(auxEtiqueta);
+				this->cache[index].setValidez(true);
+				result = false;
+			}
+			//cout<<"Etiqueta:"<<this->cache[index].getEtiqueta()<<endl;
+            return (result);
+			
+		}
 
-using namespace std;
+
+/*********************************************************************************************************************************************************************/
 
 long int DirHexToDec(string direccionHex) {
 
