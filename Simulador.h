@@ -61,6 +61,18 @@ class Simulador{
 		void setTamBloques(int tBloques){
 			this->tamBloques = tBloques;
 		}
+		void setHit(int cambio){
+			this->hit = cambio;
+		}
+		void setMiss(int cambio){
+			this->miss = cambio;
+		}
+		void reiniciar(){
+			for(int i = 0;i<this->numeroBloques;i++){
+				this->cache[i].setEtiqueta(-1);
+				this->cache[i].setValidez(false);
+			}
+		}
 /*********************************************************************************************************************************************************************/
 		bool directa(long int direccion){
 			long int auxEtiqueta;
@@ -86,8 +98,10 @@ class Simulador{
 			bool bandera = directa(direccion);
 			if(bandera){
 				this->hit++;
+				cout<<"\tDireccion: "<<direccion<<" Acierto en el BLoque"<<endl;
 			}else{
 				this->miss++;
+				cout<<"\tDireccion: "<<direccion<<" Fallo en el BLoque"<<endl;
 			}
 		}
 /*********************************************************************************************************************************************************************/
@@ -95,32 +109,38 @@ class Simulador{
 			bool bandera = conjunto(direccion,nConjuntos);
 			if(bandera){
 				this->hit++;
+				cout<<"\tDireccion: "<<direccion<<" Acierto en el BLoque"<<endl;
 			}else{
+				cout<<"\tDireccion: "<<direccion<<" Fallo en el BLoque"<<endl;
 				this->miss++;
 			}
+			//cout<<"miss:"<<this->getMiss()<<endl;
+			//cout<<"hit:"<<this->getHit()<<endl;
 		}
 		
 		bool conjunto(long int direccion,int nConjunto){
 			long int auxEtiqueta;
 			bool auxValidez,result = false,band = false,bandVacio = true;
-			int desplazamiento,index,carriles,auxIndex = 0;
+			int desplazamiento,index = 0,carriles,auxIndex = 0;
 			Pila<long int> reciente;
 			carriles = this->numeroBloques / nConjunto;
 			desplazamiento = log2(this->tamBloques);
             auxEtiqueta = direccion >> desplazamiento;
             index = auxEtiqueta % carriles;
+			//cout<<"posicion: "<<index<<endl;
 			band = buscar(index,carriles,auxEtiqueta);
             if(band){
             	result = true;
 			}else{
 				bandVacio = buscar(index,carriles,-1);
+				auxIndex = buscarposicion(index,carriles,-1);
 				if(bandVacio){
 					reciente.apilar(auxEtiqueta);
-					auxIndex = buscarposicion(index,carriles,-1);
+					//cout<<"posicion: "<<auxIndex<<endl;
 					this->cache[auxIndex].setEtiqueta(auxEtiqueta);
 				}else{
 					reciente.apilar(auxEtiqueta);
-					buscarRemplazo(reciente,index,carriles,auxEtiqueta);
+					buscarRemplazo(reciente,index,carriles,auxEtiqueta);//falla posible error
 					reciente.desapilar();
 				}
 			}
@@ -163,21 +183,24 @@ class Simulador{
 			bool bandera = completaAsociativa(direccion);
 			if(bandera){
 				this->hit++;
+				cout<<"\tDireccion: "<<direccion<<" Acierto en el BLoque"<<endl;
 			}else{
 				this->miss++;
+				cout<<"\tDireccion: "<<direccion<<" Fallo en el BLoque"<<endl;
 			}
 		}
 		
 		bool completaAsociativa(long int direccion){
 			long int auxEtiqueta;
-			bool auxValidez,result = false;
-			int desplazamiento,index;
+			bool auxValidez,result = false,band = false;
+			int desplazamiento,index =0;
 			desplazamiento = log2(this->tamBloques);
             auxEtiqueta = direccion >> desplazamiento;
+			band = buscar(index,this->numeroBloques,auxEtiqueta);
             index = this->buscarposicion(0,this->numeroBloques,-1);
             //std::cout<<"Desplazamiento: "<<desplazamiento<<endl;
            // std::cout<<"indice:"<<index<<endl;
-            if(index == 0 ){
+            if(band){
             	result = true;
 			}else{
 				this->cache[index].setEtiqueta(auxEtiqueta);
