@@ -98,10 +98,10 @@ class Simulador{
 			bool bandera = directa(direccion);
 			if(bandera){
 				this->hit++;
-				cout<<"\tDireccion: "<<direccion<<" Acierto en el BLoque"<<endl;
+			//	cout<<"\tDireccion: "<<direccion<<" Acierto en el BLoque"<<endl;
 			}else{
 				this->miss++;
-				cout<<"\tDireccion: "<<direccion<<" Fallo en el BLoque"<<endl;
+				//cout<<"\tDireccion: "<<direccion<<" Fallo en el BLoque"<<endl;
 			}
 		}
 /*********************************************************************************************************************************************************************/
