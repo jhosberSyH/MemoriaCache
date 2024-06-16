@@ -2,12 +2,9 @@
 #define Simulador_h
 #include<iostream>
 #include "Cache.h"
-#include "Pila.cpp"
-#include "Pila.h"
-#include "Nodo.cpp"
-#include "Nodo.h"
 #include <vector>
 #include <string>
+#include <list>
 #include<cmath>
 #include <bitset>
 #include <sstream>
@@ -19,7 +16,8 @@ class Simulador{
 		int tamBloques;
 		int hit;
 		int miss;
-		Cache cache[30];
+		Cache cache[300];
+		list<unsigned long int> reciente[300];
 	public:
 /**********-***********************************************************************************************************************************************************/
 	//Constructores
@@ -74,15 +72,15 @@ class Simulador{
 			}
 		}
 /*********************************************************************************************************************************************************************/
-		bool directa(long int direccion){
-			long int auxEtiqueta;
+		bool directa(unsigned long int direccion){
+			unsigned long int auxEtiqueta;
 			bool auxValidez,result = false;
 			int desplazamiento,index;
 			desplazamiento = log2(this->tamBloques);
             auxEtiqueta = direccion >> desplazamiento;
             index = auxEtiqueta % this->numeroBloques;
             //std::cout<<"Desplazamiento: "<<desplazamiento<<endl;
-           // std::cout<<"indice:"<<index<<endl;
+            //std::cout<<"indice:"<<index<<endl;
             if((this->cache[index].getValidez()) && (this->cache[index].getEtiqueta() == auxEtiqueta) ){
             	result = true;
 			}else{
@@ -90,11 +88,11 @@ class Simulador{
 				this->cache[index].setValidez(true);
 				result = false;
 			}
-			//cout<<"Etiqueta:"<<this->cache[index].getEtiqueta()<<endl;
+			//this->imprimirCache(); //Mostrar Cache
             return (result);
 			
 		}
-		void MemoriaDirecta(long int direccion){
+		void MemoriaDirecta(unsigned long int direccion){
 			bool bandera = directa(direccion);
 			if(bandera){
 				this->hit++;
@@ -105,109 +103,127 @@ class Simulador{
 			}
 		}
 /*********************************************************************************************************************************************************************/
-		void MemoriaAsociativaConjuntos(long int direccion,int nConjuntos){
+		void MemoriaAsociativaConjuntos(unsigned long int direccion,int nConjuntos){
 			bool bandera = conjunto(direccion,nConjuntos);
 			if(bandera){
 				this->hit++;
-				cout<<"\tDireccion: "<<direccion<<" Acierto en el BLoque"<<endl;
+				//cout<<"\tDireccion: "<<direccion<<" Acierto en el BLoque"<<endl;
 			}else{
-				cout<<"\tDireccion: "<<direccion<<" Fallo en el BLoque"<<endl;
+				//cout<<"\tDireccion: "<<direccion<<" Fallo en el BLoque"<<endl;
 				this->miss++;
 			}
 			//cout<<"miss:"<<this->getMiss()<<endl;
 			//cout<<"hit:"<<this->getHit()<<endl;
 		}
 		
-		bool conjunto(long int direccion,int nConjunto){
-			long int auxEtiqueta;
+		bool conjunto(unsigned long int direccion,int nConjunto){
+			unsigned long int auxEtiqueta;
 			bool auxValidez,result = false,band = false,bandVacio = true;
 			int desplazamiento,index = 0,carriles,auxIndex = 0;
-			Pila<long int> reciente;
 			carriles = this->numeroBloques / nConjunto;
 			desplazamiento = log2(this->tamBloques);
             auxEtiqueta = direccion >> desplazamiento;
-            index = auxEtiqueta % carriles;
+            index = auxEtiqueta % nConjunto;
 			//cout<<"posicion: "<<index<<endl;
 			band = buscar(index,carriles,auxEtiqueta);
-            if(band){
+			//cout<<index<<endl<<endl;
+            //cout<<"index: "<<index<<endl;
+			if(band){
             	result = true;
 			}else{
 				bandVacio = buscar(index,carriles,-1);
 				auxIndex = buscarposicion(index,carriles,-1);
 				if(bandVacio){
-					reciente.apilar(auxEtiqueta);
-					//cout<<"posicion: "<<auxIndex<<endl;
+					this->reciente[index].push_back(auxEtiqueta);
 					this->cache[auxIndex].setEtiqueta(auxEtiqueta);
 				}else{
-					reciente.apilar(auxEtiqueta);
-					buscarRemplazo(reciente,index,carriles,auxEtiqueta);//falla posible error
-					reciente.desapilar();
+					//cout<<"posicion: "<<index<<endl;
+					this->reciente[index].push_front(auxEtiqueta);
+					buscarRemplazo(this->reciente[index].back(),index,carriles,auxEtiqueta);//falla posible error
+					this->reciente[index].pop_back();
 				}
 			}
+			//this->imprimirCache(); //Mostrar Cache
             return (result);
 			
 		}
-		bool buscar(int index,int carriles,long int valor){
+		bool buscar(int index,int carriles,unsigned long int valor){
 			bool result = false;
-			int i = index;
+			int i = 0,posicion = index*carriles;
+			//cout<<index<<endl<<endl;
 			while((!result) && (i<carriles)){
-				if(this->cache[i].getEtiqueta() == valor){
+				if(this->cache[posicion].getEtiqueta() == valor){
 					result = true;
 				}
+				posicion++;
 				i++;
 			}
 			return result;
 		}
-		int buscarposicion(int index,int carriles,long int valor){
-			int i = index, result = 0;
-			while((!result) && (i<carriles)){
-				if(this->cache[i].getEtiqueta() == valor){
-					result = i;
-				}
-				i++;
-			}
-			return result;
-		}
-		void buscarRemplazo(Pila<long int> reciente,int index,int carriles,long int valor){
+		int buscarposicion(int index,int carriles,unsigned long int valor){
+			int i = 0,posicion = index*carriles, result = 0;
 			bool band = false;
-			int i = index;
+			//cout<<valor<<endl;
 			while((!band) && (i<carriles)){
-				if(this->cache[i].getEtiqueta() == reciente.tope()){
-					this->cache[i].setEtiqueta(valor);
+				if(this->cache[posicion].getEtiqueta() == valor){
+					result = posicion;
+					band = true;
 				}
+				posicion++;
+				i++;
+			}
+			return result;
+		}
+		void buscarRemplazo(long int reciente,int index,int carriles,unsigned long int valor){
+			bool band = false;
+			int i = 0,posicion = index*carriles;
+			//cout<<"reciente : "<<reciente<<endl<<endl;
+			while((!band) && (i<carriles)){
+				if(this->cache[posicion].getEtiqueta() == reciente){
+					band = true;
+					this->cache[posicion].setEtiqueta(valor);
+				}
+				posicion++;
 				i++;
 			}
 		}
 /*********************************************************************************************************************************************************************/
-	void MemoriaCompletamenteAsociativa(long int direccion){
+	void MemoriaCompletamenteAsociativa(unsigned long int direccion){
 			bool bandera = completaAsociativa(direccion);
 			if(bandera){
 				this->hit++;
-				cout<<"\tDireccion: "<<direccion<<" Acierto en el BLoque"<<endl;
+				//cout<<"\tDireccion: "<<direccion<<" Acierto en el BLoque"<<endl;
 			}else{
 				this->miss++;
-				cout<<"\tDireccion: "<<direccion<<" Fallo en el BLoque"<<endl;
+				//cout<<"\tDireccion: "<<direccion<<" Fallo en el BLoque"<<endl;
 			}
 		}
 		
-		bool completaAsociativa(long int direccion){
-			long int auxEtiqueta;
-			bool auxValidez,result = false,band = false;
-			int desplazamiento,index =0;
+		bool completaAsociativa(unsigned long int direccion){
+			unsigned long int auxEtiqueta;
+			bool auxValidez,result = false,band = false,auxBand = false;
+			int desplazamiento,index =0,auxIndex = 0;
 			desplazamiento = log2(this->tamBloques);
             auxEtiqueta = direccion >> desplazamiento;
-			band = buscar(index,this->numeroBloques,auxEtiqueta);
-            index = this->buscarposicion(0,this->numeroBloques,-1);
+			band = this->buscar(index,this->numeroBloques,auxEtiqueta);
             //std::cout<<"Desplazamiento: "<<desplazamiento<<endl;
            // std::cout<<"indice:"<<index<<endl;
             if(band){
             	result = true;
 			}else{
-				this->cache[index].setEtiqueta(auxEtiqueta);
-				this->cache[index].setValidez(true);
+				auxBand = this->buscar(index,this->numeroBloques,-1);
+				if(auxBand){
+					index = this->buscarposicion(0,this->numeroBloques,-1);
+					this->cache[index].setEtiqueta(auxEtiqueta);
+					this->cache[index].setValidez(true);
+				}else{
+					auxIndex = rand() % this->numeroBloques;
+					this->cache[auxIndex].setEtiqueta(auxEtiqueta);
+					this->cache[auxIndex].setValidez(true);
+				}
 				result = false;
 			}
-			//cout<<"Etiqueta:"<<this->cache[index].getEtiqueta()<<endl;
+			//this->imprimirCache(); //Mostrar Cache
             return (result);
 			
 		}
@@ -215,20 +231,25 @@ class Simulador{
 
 /*********************************************************************************************************************************************************************/
 
-long int DirHexToDec(string direccionHex) {
+unsigned long int DirHexToDec(string direccionHex) {
 
-    // Elimina el prefijo "0x" si está presente
     if (direccionHex.substr(0, 2) == "0x") {
         direccionHex = direccionHex.substr(2);
     }
 
-    // Convierte el número hexadecimal a decimal
-    long int decimal;
+    unsigned long int decimal;
     istringstream(direccionHex) >> hex >> decimal;
 
     return decimal;
 }
 
+
+void imprimirCache(){
+	for(int i = 0; i<this->numeroBloques;i++){
+		cout<<"\t"<<this->cache[i].getEtiqueta();
+	}
+	cout<<endl;
+}
 
 
 };

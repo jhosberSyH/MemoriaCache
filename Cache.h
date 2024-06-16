@@ -3,7 +3,7 @@
 #include<vector>
 class Cache{
 	private:
-		long int etiqueta;
+		unsigned long int etiqueta;
 		bool validez;
 	public:
 /*********************************************************************************************************************************************************************/
@@ -12,13 +12,13 @@ class Cache{
 			this->validez = false;
 			this->etiqueta = -1;
 		}
-		Cache(long int etq,bool val){
+		Cache(unsigned long int etq,bool val){
 			this->validez = val;
 			this->etiqueta = etq;
 		}
 /*********************************************************************************************************************************************************************/
 		//getters
-		long int getEtiqueta(){
+		unsigned long int getEtiqueta(){
 			return (this->etiqueta);
 		}
 		bool getValidez(){
@@ -27,7 +27,7 @@ class Cache{
 
 /*********************************************************************************************************************************************************************/
 		//Setters
-		void setEtiqueta(long int etq){
+		void setEtiqueta(unsigned long int etq){
 			this->etiqueta = etq;
 		}
 		void setValidez(bool val){
