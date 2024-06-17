@@ -2,7 +2,6 @@
 #define Simulador_h
 #include<iostream>
 #include "Cache.h"
-#include <vector>
 #include <string>
 #include <list>
 #include<cmath>
@@ -14,9 +13,10 @@ class Simulador{
 		//atributos
 		int numeroBloques;
 		int tamBloques;
-		int hit;
-		int miss;
+		unsigned long int hit;
+		unsigned long int miss;
 		Cache cache[300];
+		unsigned long int buffer;
 		list<unsigned long int> reciente[300];
 	public:
 /**********-***********************************************************************************************************************************************************/
@@ -26,12 +26,14 @@ class Simulador{
 			this->tamBloques = 0;
 			this->hit = 0;
 			this->miss = 0;
+			this->buffer = -1;
 		}
 		Simulador(int nBloques,int tBloques){
 			this->numeroBloques = nBloques;
 			this->tamBloques = tBloques;
 			this->hit = 0;
 			this->miss = 0;
+			this->buffer = -1;
 			for(int i = 0;i<nBloques;i++){
 				this->cache[i].setEtiqueta(-1);
 				this->cache[i].setValidez(false);
@@ -45,11 +47,14 @@ class Simulador{
 		int getTamBloques(){
 			return (this->tamBloques);
 		}
-		int getHit(){
+		long int getHit(){
 			return (this->hit);
 		}
-		int getMiss(){
+		long int getMiss(){
 			return (this->miss);
+		}
+		unsigned long int getBuffer(){
+			return (this->buffer);
 		}
 /*********************************************************************************************************************************************************************/
 		//Setters
@@ -65,6 +70,9 @@ class Simulador{
 		void setMiss(int cambio){
 			this->miss = cambio;
 		}
+			void setBuffer(unsigned long int buff){
+			this->buffer = buff;
+		}
 		void reiniciar(){
 			for(int i = 0;i<this->numeroBloques;i++){
 				this->cache[i].setEtiqueta(-1);
@@ -72,7 +80,7 @@ class Simulador{
 			}
 		}
 /*********************************************************************************************************************************************************************/
-		bool directa(unsigned long int direccion){
+		bool directa(unsigned long int direccion,bool preEncontrado){
 			unsigned long int auxEtiqueta;
 			bool auxValidez,result = false;
 			int desplazamiento,index;
@@ -84,16 +92,20 @@ class Simulador{
             if((this->cache[index].getValidez()) && (this->cache[index].getEtiqueta() == auxEtiqueta) ){
             	result = true;
 			}else{
+				if(preEncontrado){
+					result = true;
+				}else{
+					result = false;
+				}
 				this->cache[index].setEtiqueta(auxEtiqueta);
 				this->cache[index].setValidez(true);
-				result = false;
 			}
 			//this->imprimirCache(); //Mostrar Cache
             return (result);
 			
 		}
-		void MemoriaDirecta(unsigned long int direccion){
-			bool bandera = directa(direccion);
+		void MemoriaDirecta(unsigned long int direccion,bool preEncontrado){
+			bool bandera = directa(direccion,preEncontrado);
 			if(bandera){
 				this->hit++;
 			//	cout<<"\tDireccion: "<<direccion<<" Acierto en el BLoque"<<endl;
@@ -103,8 +115,8 @@ class Simulador{
 			}
 		}
 /*********************************************************************************************************************************************************************/
-		void MemoriaAsociativaConjuntos(unsigned long int direccion,int nConjuntos){
-			bool bandera = conjunto(direccion,nConjuntos);
+		void MemoriaAsociativaConjuntos(unsigned long int direccion,int nConjuntos,bool preEncontrado){
+			bool bandera = conjunto(direccion,nConjuntos,preEncontrado);
 			if(bandera){
 				this->hit++;
 				//cout<<"\tDireccion: "<<direccion<<" Acierto en el BLoque"<<endl;
@@ -116,7 +128,7 @@ class Simulador{
 			//cout<<"hit:"<<this->getHit()<<endl;
 		}
 		
-		bool conjunto(unsigned long int direccion,int nConjunto){
+		bool conjunto(unsigned long int direccion,int nConjunto,bool preEncontrado){
 			unsigned long int auxEtiqueta;
 			bool auxValidez,result = false,band = false,bandVacio = true;
 			int desplazamiento,index = 0,carriles,auxIndex = 0;
@@ -131,6 +143,11 @@ class Simulador{
 			if(band){
             	result = true;
 			}else{
+				if(preEncontrado){
+					result = true;
+				}else{
+					result = false;
+				}
 				bandVacio = buscar(index,carriles,-1);
 				auxIndex = buscarposicion(index,carriles,-1);
 				if(bandVacio){
@@ -188,8 +205,8 @@ class Simulador{
 			}
 		}
 /*********************************************************************************************************************************************************************/
-	void MemoriaCompletamenteAsociativa(unsigned long int direccion){
-			bool bandera = completaAsociativa(direccion);
+	void MemoriaCompletamenteAsociativa(unsigned long int direccion,bool preEncontrado){
+			bool bandera = completaAsociativa(direccion,preEncontrado);
 			if(bandera){
 				this->hit++;
 				//cout<<"\tDireccion: "<<direccion<<" Acierto en el BLoque"<<endl;
@@ -199,7 +216,7 @@ class Simulador{
 			}
 		}
 		
-		bool completaAsociativa(unsigned long int direccion){
+		bool completaAsociativa(unsigned long int direccion,bool preEncontrado){
 			unsigned long int auxEtiqueta;
 			bool auxValidez,result = false,band = false,auxBand = false;
 			int desplazamiento,index =0,auxIndex = 0;
@@ -211,6 +228,11 @@ class Simulador{
             if(band){
             	result = true;
 			}else{
+				if(preEncontrado){
+					result = true;
+				}else{
+					result = false;
+				}
 				auxBand = this->buscar(index,this->numeroBloques,-1);
 				if(auxBand){
 					index = this->buscarposicion(0,this->numeroBloques,-1);
@@ -220,8 +242,7 @@ class Simulador{
 					auxIndex = rand() % this->numeroBloques;
 					this->cache[auxIndex].setEtiqueta(auxEtiqueta);
 					this->cache[auxIndex].setValidez(true);
-				}
-				result = false;
+				}		
 			}
 			//this->imprimirCache(); //Mostrar Cache
             return (result);
@@ -251,6 +272,17 @@ void imprimirCache(){
 	cout<<endl;
 }
 
-
+bool preBusqueda(unsigned long int direccion){
+	unsigned long int auxEtiqueta;
+	int desplazamiento;
+	bool result = false;
+	desplazamiento = log2(this->tamBloques);
+    auxEtiqueta = direccion >> desplazamiento;
+    if(this->buffer == auxEtiqueta ){
+    	result = true;
+	}
+	this->buffer = auxEtiqueta;
+	return result;
+}
 };
 #endif 

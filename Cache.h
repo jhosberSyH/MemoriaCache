@@ -1,6 +1,5 @@
 #ifndef Cache_h
 #define Cache_h
-#include<vector>
 class Cache{
 	private:
 		unsigned long int etiqueta;
@@ -12,6 +11,7 @@ class Cache{
 			this->validez = false;
 			this->etiqueta = -1;
 		}
+		
 		Cache(unsigned long int etq,bool val){
 			this->validez = val;
 			this->etiqueta = etq;
@@ -21,6 +21,7 @@ class Cache{
 		unsigned long int getEtiqueta(){
 			return (this->etiqueta);
 		}
+		
 		bool getValidez(){
 			return (this->validez);
 		}
@@ -30,6 +31,7 @@ class Cache{
 		void setEtiqueta(unsigned long int etq){
 			this->etiqueta = etq;
 		}
+		
 		void setValidez(bool val){
 			this->validez = val;
 		}
