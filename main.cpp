@@ -7,6 +7,7 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <chrono>
 using namespace std;
 /*****************************************************************************************************************************************************/
 											//EJECUTADOR
@@ -34,6 +35,8 @@ int validarNumero(string num); //Validacion para saber si ingreso un numero
 
 int main() {
     int iniciar = 0;
+    
+    auto start = std::chrono::high_resolution_clock::now(); // Iniciar el cronómetro
     cout<<"\t\tBienvenido"<<endl<<endl; //Mensaje de Bienvenida
 	do{
 		iniciar = menu(); //Menu para Interacturar Con el Usuario devuelve el valor de la opcion que eligio
@@ -54,6 +57,11 @@ int main() {
 			break;		
 	}
 	
+    auto stop = std::chrono::high_resolution_clock::now(); // Detener el cronómetro
+
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start); // Calcular la duración
+ 
+    std::cout << "Tiempo de ejecucion: " << duration.count() << " microsegundos" << std::endl; // Mostrar el tiempo en microsegundos
     return 0;
 }
 
