@@ -2,577 +2,549 @@
 #include <string>
 #include <bitset>
 #include "Simulador.h"
-#include <iostream>
 #include <unistd.h>
-#include <string>
+#include <vector>
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <stdlib.h>
-#include <chrono>
 using namespace std;
-void cachePorConjuntos();
-void cacheCompletamenteAsociativa();
-void cacheDirecta();
+
+//Jhosber Stalin Ynojosa Hernandez C.I:31.116.618
+//Miguel Eduardo Romero Alvarez C.I:30.155.726
+
 /*****************************************************************************************************************************************************/
-void cachePorConjuntos(int numeroBloques,int sizeBloques,int numeroConjuntos);
-void cacheCompletamenteAsociativa(int numeroBloques,int sizeBloques);
-void cacheDirecta(int numeroBloques,int sizeBloques);
-int menu();
-int validarNumero(string num);
-void todas();
+											//EJECUTADOR
+											
+void cachePorConjuntos(int numeroBloques,int sizeBloques,int numeroConjuntos); //Ejecuta la Cache por conjunto e imprime resultados
+void cacheCompletamenteAsociativa(int numeroBloques,int sizeBloques); //Ejecuta la Cache Completamente Asociativa e imprime resultados
+void cacheDirecta(int numeroBloques,int sizeBloques); //Ejecuta la Cache Directa e imprime resultados
+
+/*****************************************************************************************************************************************************/
+											//AUXILIARES PIDE VALORES Y VERIFICA
+											
+void cachePorConjuntos(); //Pide los valores y verifica suvalor antes de entrar al ejecutor de Cache por Conjuntos
+void cacheCompletamenteAsociativa(); //Pide los valores y verifica suvalor antes de entrar al ejecutor de Cache Completamente Asociativas
+void cacheDirecta(); //Pide los valores y verifica suvalor antes de entrar al ejecutor de Cache Directa
+void todas(); //ejecuta las tres Caches Juntas
+
+/*****************************************************************************************************************************************************/
+											//OTROS
+											
+int menu(); //Menu para Interacturar Con el Usuario devuelve el valor de la opcion que eligio
+int validarNumero(string num); //Validacion para saber si ingreso un numero
+void interactivo();
+
+/*****************************************************************************************************************************************************/
+
 
 int main() {
     int iniciar = 0;
-    
     cout<<"\t\tBienvenido"<<endl<<endl; //Mensaje de Bienvenida
 	do{
-		iniciar = menu();
-	}while((iniciar < 1) || (iniciar > 4));
+		iniciar = menu(); //Menu para Interacturar Con el Usuario devuelve el valor de la opcion que eligio
+	}while((iniciar < 1) || (iniciar > 5)); //validacion para que no escoja un numero fuera del rango
 
-	switch(iniciar){
+	switch(iniciar){ //selecionador para operar una de las 4 opciones 
 		case 1:
-			cacheDirecta();
+			cacheDirecta(); //Pide los valores y verifica suvalor antes de entrar al ejecutor de Cache Directa
 			break;
 		case 2:
-			cachePorConjuntos();
+			cachePorConjuntos(); //Pide los valores y verifica suvalor antes de entrar al ejecutor de Cache por Conjuntos
 			break;
 		case 3:
-			cacheCompletamenteAsociativa();
+			cacheCompletamenteAsociativa(); //Pide los valores y verifica suvalor antes de entrar al ejecutor de Cache Completamente Asociativas
 			break;
 		case 4:
-			todas();
-			break;		
+			todas(); //ejecuta las tres Caches Juntas
+			break;
+        case 5:
+            interactivo(); //Permite ejecutar cualquiera de las 3 caches utilizando valores ingresados manualmente
+            break;		
 	}
 	
     return 0;
 }
 
+/*****************************************************************************************************************************************************/
+											//AUXILIARES PIDE VALORES Y VERIFICA
+
 void cachePorConjuntos(){
-	int archivo,numeroBloques = 0,sizeBloques = 0,numeroConjuntos = 0,contFallos = 0;
-    char *byte;
-    struct stat statbf;
-    archivo = open( "steam_games2023.csv" , O_RDONLY ); 
+	int numeroBloques = 0,numeroConjuntos = 0,sizeBloques = 0,numero = 0; //Se declara variables
+	string val; //Se declara variables
+	do{
+		cout<<endl<<"\tIngrese el Numero de Bloques:"; //mensaje para el Usuario
+        cin>>val; //lectura estandar de un string
+    	numero = validarNumero(val); // Valida si es numero
+    }while(numero == 0); // si es diferente de 0 se repite
+    numeroBloques = stoi(val); //transforma un string en entero
     
-    if( archivo == -1 ){
-        cout << "No se entrar al steam_games"<<endl;
-        exit(1);
-    }
-
-    if( fstat( archivo , &statbf ) == -1 ){ 
-        cout << "Error al intentar obtener informacion de la estructura de datos."<<endl;
-        exit(1);
-    }
-
-    byte = (char*) mmap( NULL , statbf.st_size, PROT_READ, MAP_PRIVATE, archivo, 0); 
-
-    if( byte == MAP_FAILED ){
-        cout << "Hubo un error al mapear el steam_games en memoria"<<endl; exit(1);
-    }
+    do{
+		cout<<endl<<"\tIngrese el size de Palabra:"; //mensaje para el Usuario
+        cin>>val; //lectura estandar de un string
+    	numero = validarNumero(val); // Valida si es numero
+    }while(numero == 0); // si es diferente de 0 se repite
+    sizeBloques = stoi(val); //transforma un string en entero
+     
+    do{
+		cout<<endl<<"\tIngrese el Numero de Conjuntos:"; //mensaje para el Usuario
+        cin>>val; //lectura estandar de un string
+    	numero = validarNumero(val); // Valida si es numero
+    }while(numero == 0); // si es diferente de 0 se repite
+    numeroConjuntos = stoi(val); //transforma un string en entero
     
-    cout<<endl<<"\tIngrese el Numero de Bloques:";
-    cin>>numeroBloques;
-    cout<<endl<<"\tIngrese el tama�o de Palabra:";
-    cin>>sizeBloques;
-    cout<<endl<<"\tIngrese el Numero de Conjuntos:";
-    cin>>numeroConjuntos;
+	system("clear"); //borra la pantalla
+    cout<<"\t\tCargando..."<<endl; //mensaje para el Usuario
     
-    Simulador memoriaCache(numeroBloques,sizeBloques);//numerode bloques && tam de bloques
-    float porcentaje = 0;
-	unsigned long int valor = 0,direccion = 0,auxDireccion = 0,totales = 0;
-    string campo;
-    char unidad;
-    bool preEncotrado = false;
-    size_t size = statbf.st_size, contador=0;
-    
-    system("clear");
-    
-    cout<<"\t\tCargando..."<<endl;
-    
-    while(contador < size){
-        unidad =*(byte++);
-        if(unidad == ','){
-        	direccion = memoriaCache.DirHexToDec(campo);
-        	preEncotrado = memoriaCache.preBusqueda(direccion);
-        	if(preEncotrado){
-        		memoriaCache.MemoriaAsociativaConjuntos(direccion,numeroConjuntos,preEncotrado);
-			}else{
-				if(contFallos > 1){
-        			memoriaCache.MemoriaAsociativaConjuntos(auxDireccion,numeroConjuntos,preEncotrado);
-        			contFallos--;	
-				}else{
-					contFallos++;
-				}
-				auxDireccion = direccion;
-			}
-        	campo = "";
-		}else{
-			campo += unidad;
-		}
-			contador++;
-    }
-    
-    close(archivo);
-    totales = memoriaCache.getMiss() + memoriaCache.getHit();
-    porcentaje = ((float)memoriaCache.getHit()/totales)*100;
-    
-    system("clear");
-    
-    cout<<endl<<"\t+------------------------------------------+"<<endl;
-    cout<<"\t|     Cache Asociativa Por Conjuntos       |"<<endl;
-    cout<<"\t|------------------------------------------|"<<endl;
-    cout<<"\t|                                          |"<<endl;
-    cout<<"\t| Fallos:"<<memoriaCache.getMiss()<<"                            |"<<endl;
-    cout<<"\t| Acierto:"<<memoriaCache.getHit()<<"                          |"<<endl;
-    cout<<"\t|                                          |"<<endl;
-    cout<<"\t|------------------------------------------|"<<endl;
-    cout<<"\t| Porcentaje De Acierto: "<<porcentaje<<"%          |"<<endl;
-    cout<<"\t+------------------------------------------+"<<endl;
+	cachePorConjuntos(numeroBloques,sizeBloques,numeroConjuntos); //Ejecuta la Cache por conjunto e imprime resultados
 }
 
 
 void cacheCompletamenteAsociativa(){
-	int archivo,numeroBloques = 0,sizeBloques = 0,contFallos = 0;
-    char *byte;
-    struct stat statbf;
+	int numeroBloques = 0,sizeBloques = 0,numero = 0; //Se declara variables
+	string val; //Se declara variables
+	do{
+		cout<<endl<<"\tIngrese el Numero de Bloques:"; //mensaje para el Usuario
+        cin>>val; //lectura estandar de un string
+    	numero = validarNumero(val); // Valida si es numero
+    }while(numero == 0); // si es diferente de 0 se repite
+    numeroBloques = stoi(val); //transforma un string en entero
     
-    archivo = open( "steam_games2023.csv" , O_RDONLY ); 
+    do{
+		cout<<endl<<"\tIngrese el size de Palabra:"; //mensaje para el Usuario
+        cin>>val; //lectura estandar de un string
+    	numero = validarNumero(val); // Valida si es numero
+    }while(numero == 0); // si es diferente de 0 se repite
+    sizeBloques = stoi(val);
+         
+	system("clear"); //borra la pantalla
+    cout<<"\t\tCargando..."<<endl; //mensaje para el Usuario
     
-    if( archivo == -1 ){
-        cout << "No se entrar al steam_games"<<endl;
-        exit(1);
-    }
+	cacheCompletamenteAsociativa(numeroBloques,sizeBloques); //Ejecuta la Cache Completamente Asociativa e imprime resultados
+} 
 
-    if( fstat( archivo , &statbf ) == -1 ){ 
-        cout << "Error al intentar obtener informacion de la estructura de datos."<<endl;
-        exit(1);
-    }
-
-    byte = (char*) mmap( NULL , statbf.st_size, PROT_READ, MAP_PRIVATE, archivo, 0); 
-
-    if( byte == MAP_FAILED ){
-        cout << "Hubo un error al mapear el steam_games en memoria"<<endl; exit(1);
-    }
-    cout<<endl<<"\tIngrese el Numero de Bloques:";
-    cin>>numeroBloques;
-    cout<<endl<<"\tIngrese el tama�o de Palabra:";
-    cin>>sizeBloques;
-    
-    Simulador memoriaCache(numeroBloques,sizeBloques);//numerode bloques && tam de bloques
-    float porcentaje = 0;
-	unsigned long int valor = 0,totales = 0,direccion = 0, auxDireccion = 0;
-    string campo;
-    char unidad;
-    bool preEncotrado = false;
-    size_t size = statbf.st_size, contador=0;
-    
-    system("clear");
-    
-    cout<<"\t\tCargando..."<<endl;
-    
-    while(contador < size){
-        unidad =*(byte++);
-        if(unidad == ','){
-        	direccion = memoriaCache.DirHexToDec(campo);
-        	preEncotrado = memoriaCache.preBusqueda(direccion);
-        	if(preEncotrado){
-        		memoriaCache.MemoriaCompletamenteAsociativa(direccion,preEncotrado);
-			}else{
-				if(contFallos > 1){
-        			memoriaCache.MemoriaCompletamenteAsociativa(auxDireccion,preEncotrado);
-        			contFallos--;	
-				}else{
-					contFallos++;
-				}
-				auxDireccion = direccion;
-			}
-        	campo = "";
-		}else{
-			campo += unidad;
-		}
-			contador++;
-    }
-    
-    close(archivo);
-    
-    totales = memoriaCache.getMiss() + memoriaCache.getHit();
-    porcentaje = ((float)memoriaCache.getHit()/totales)*100;
-    
-    system("clear");
-    
-    cout<<endl<<"\t+------------------------------------------+"<<endl;
-    cout<<"\t|     Cache Completamente Asociativa       |"<<endl;
-    cout<<"\t|------------------------------------------|"<<endl;
-    cout<<"\t|                                          |"<<endl;
-    cout<<"\t| Fallos:"<<memoriaCache.getMiss()<<"                            |"<<endl;
-    cout<<"\t| Acierto:"<<memoriaCache.getHit()<<"                          |"<<endl;
-    cout<<"\t|                                          |"<<endl;
-    cout<<"\t|------------------------------------------|"<<endl;
-    cout<<"\t| Porcentaje De Acierto: "<<porcentaje<<"%          |"<<endl;
-    cout<<"\t+------------------------------------------+"<<endl;
-}
 
 void cacheDirecta(){
-	int archivo,numeroBloques = 0,sizeBloques = 0,contFallos = 0;
-    char *byte;
-    struct stat statbf;
-	
-    archivo = open( "steam_games2023.csv" , O_RDONLY ); 
+	int numeroBloques = 0,sizeBloques = 0,numero = 0; //Se declara variables
+	string val; //Se declara variables
+	do{
+		cout<<endl<<"\tIngrese el Numero de Bloques:"; //mensaje para el Usuario
+        cin>>val; //lectura estandar de un string
+    	numero = validarNumero(val); // Valida si es numero
+    }while(numero == 0); // si es diferente de 0 se repite
+    numeroBloques = stoi(val); //transforma un string en entero
     
-    if( archivo == -1 ){
-        cout << "No se entrar al steam_games"<<endl;
-        exit(1);
-    }
-
-    if( fstat( archivo , &statbf ) == -1 ){ 
-        cout << "Error al intentar obtener informacion de la estructura de datos."<<endl;
-        exit(1);
-    }
-
-    byte = (char*) mmap( NULL , statbf.st_size, PROT_READ, MAP_PRIVATE, archivo, 0); 
-
-    if( byte == MAP_FAILED ){
-        cout << "Hubo un error al mapear el steam_games en memoria"<<endl; exit(1);
-    }
-    cout<<endl<<"\tIngrese el Numero de Bloques:";
-    cin>>numeroBloques;
-    cout<<endl<<"\tIngrese el tama�o de Palabra:";
-    cin>>sizeBloques;
+    do{
+		cout<<endl<<"\tIngrese el size de Palabra:"; //mensaje para el Usuario
+        cin>>val; //lectura estandar de un string
+    	numero = validarNumero(val); // Valida si es numero
+    }while(numero == 0); // si es diferente de 0 se repite
+    sizeBloques = stoi(val); //transforma un string en entero
+       
+	system("clear"); //borra la pantalla
+    cout<<"\t\tCargando..."<<endl; //mensaje para el Usuario
     
-    Simulador memoriaCache(numeroBloques,sizeBloques);//numerode bloques && tam de bloques
-    float porcentaje = 0;
-	unsigned long int valor = 0,totales = 0,direccion = 0,auxDireccion = 0;
-    string campo;
-    char unidad;
-    bool preEncotrado = false;
-    size_t size = statbf.st_size, contador=0;
-    
-    system("clear");
-    
-    cout<<"\t\tCargando..."<<endl;
-    
-    while(contador < size){
-        unidad =*(byte++);
-        if(unidad == ','){
-        	direccion = memoriaCache.DirHexToDec(campo);
-        	preEncotrado = memoriaCache.preBusqueda(direccion);
-        	if(preEncotrado){
-        		memoriaCache.MemoriaDirecta(direccion,preEncotrado);
-			}else{
-				if(contFallos > 1){
-        			memoriaCache.MemoriaDirecta(auxDireccion,preEncotrado);
-        			contFallos--;	
-				}else{
-					contFallos++;
-				}
-				auxDireccion = direccion;
-			}
-        	campo = "";
-		}else{
-			campo += unidad;
-		}
-			contador++;
-    }
-    
-    close(archivo);
-    
-    totales = memoriaCache.getMiss() + memoriaCache.getHit();
-    porcentaje = ((float)memoriaCache.getHit()/totales)*100;
-    
-    system("clear");
-    
-    cout<<endl<<"\t+------------------------------------------+"<<endl;
-    cout<<"\t|            Cache Directa                 |"<<endl;
-    cout<<"\t|------------------------------------------|"<<endl;
-    cout<<"\t|                                          |"<<endl;
-    cout<<"\t| Fallos:"<<memoriaCache.getMiss()<<"                            |"<<endl;
-    cout<<"\t| Acierto:"<<memoriaCache.getHit()<<"                          |"<<endl;
-    cout<<"\t|                                          |"<<endl;
-    cout<<"\t|------------------------------------------|"<<endl;
-    cout<<"\t| Porcentaje De Acierto: "<<porcentaje<<"%          |"<<endl;
-    cout<<"\t+------------------------------------------+"<<endl;
+	cacheDirecta(numeroBloques,sizeBloques); //Ejecuta la Cache Directa e imprime resultados
 }
+
+
+void todas(){
+	int numeroBloques = 0,numeroConjuntos = 0,sizeBloques = 0,numero = 0; //Se declara variables
+	string val; //Se declara variables
+	do{
+		cout<<endl<<"\tIngrese el Numero de Bloques:"; //Mensaje al Usuario
+        cin>>val; //lectura estandar de un string
+    	numero = validarNumero(val); // Valida si es numero
+    }while(numero == 0); // si es diferente de 0 se repite
+    numeroBloques = stoi(val); //transforma un string en entero
+    
+    do{
+		cout<<endl<<"\tIngrese el size de Palabra:"; //Mensaje al Usuario
+        cin>>val; //lectura estandar de un string
+    	numero = validarNumero(val); // Valida si es numero
+    }while(numero == 0); // si es diferente de 0 se repite
+    sizeBloques = stoi(val); //transforma un string en entero
+     
+    do{
+		cout<<endl<<"\tIngrese el Numero de Conjuntos:"; //Mensaje al Usuario
+        cin>>val; //lectura estandar de un string
+    	numero = validarNumero(val); // Valida si es numero
+    }while(numero == 0); // si es diferente de 0 se repite
+    numeroConjuntos = stoi(val); //transforma un string en entero
+    
+    system("clear"); //borra la pantalla
+    cout<<"\t\tCargando..."<<endl; //Mensaje al Usuario
+    
+	cacheDirecta(numeroBloques,sizeBloques); //Ejecuta la Cache Directa e imprime resultados
+	cachePorConjuntos(numeroBloques,sizeBloques,numeroConjuntos); //Ejecuta la Cache por conjunto e imprime resultados
+	cacheCompletamenteAsociativa(numeroBloques,sizeBloques); //Ejecuta la Cache Completamente Asociativa e imprime resultados
+} //Cierre de ejecutar todas las Cache
+
 /******************************************************************************************************************************************************/
+											//EJECUTADOR
+
 void cachePorConjuntos(int numeroBloques,int sizeBloques,int numeroConjuntos){
-	int archivo,contFallos = 0;
-    char *byte;
-    struct stat statbf;
-    archivo = open( "steam_games2023.csv" , O_RDONLY ); 
+	int archivo,contFallos = 0; //Se declara variables
+    char *byte; //Se declara variables
+    struct stat statbf; //Se declara variables
+    archivo = open( "steam_games2023.csv" , O_RDONLY ); //Se abre el Archivo
     
-    if( archivo == -1 ){
-        cout << "No se entrar al steam_games"<<endl;
-        exit(1);
+    if( archivo == -1 ){ //Si el Archivo devuelve -1 significa que no se abrio el archivo
+        cout << "No se puede entrar al archivo steam_games2023"<<endl; //Mensaje al Usuario
+        exit(1); //cierra el programa
     }
 
-    if( fstat( archivo , &statbf ) == -1 ){ 
-        cout << "Error al intentar obtener informacion de la estructura de datos."<<endl;
-        exit(1);
+    if( fstat( archivo , &statbf ) == -1 ){ //Si devuelve -1 significa que no se Pudo Obtener la informacion de la estructura de datos (stat)
+        cout << "Error al intentar obtener informacion de la estructura de datos."<<endl; //Mensaje al Usuario
+        exit(1); //Cierra el programa
     }
 
-    byte = (char*) mmap( NULL , statbf.st_size, PROT_READ, MAP_PRIVATE, archivo, 0); 
+    byte = (char*) mmap( NULL , statbf.st_size, PROT_READ, MAP_PRIVATE, archivo, 0); //Mapea la informacion en el apuntador a caracter
 
-    if( byte == MAP_FAILED ){
-        cout << "Hubo un error al mapear el steam_games en memoria"<<endl; exit(1);
+    if( byte == MAP_FAILED ){ //Si no se pudo mapear salta el mensaje al ususario 
+        cout << "Hubo un error al mapear el steam_games en memoria"<<endl; //Mensaje al Usuario
+		exit(1); //Sale del Programa
     }
     
     
-    Simulador memoriaCache(numeroBloques,sizeBloques);//numerode bloques && tam de bloques
-    float porcentaje = 0;
-	unsigned long int valor = 0,direccion = 0,auxDireccion = 0,totales = 0;
-    string campo;
-    char unidad;
-    bool preEncotrado = false;
-    size_t size = statbf.st_size, contador=0;
+    Simulador memoriaCache(numeroBloques,sizeBloques);//numerode bloques && tam de bloques y Se declara variables
+    float porcentaje = 0; //Se declara variables
+	unsigned long int valor = 0,direccion = 0,auxDireccion = 0,totales = 0; //Se declara variables
+    string campo; //Se declara variables
+    char unidad; //Se declara variables
+    bool preEncotrado = false; //Se declara variables
+    size_t size = statbf.st_size, contador=0; //Se declara variables
     
     
-    while(contador < size){
-        unidad =*(byte++);
-        if(unidad == ','){
-        	direccion = memoriaCache.DirHexToDec(campo);
-        	preEncotrado = memoriaCache.preBusqueda(direccion);
-        	if(preEncotrado){
-        		memoriaCache.MemoriaAsociativaConjuntos(direccion,numeroConjuntos,preEncotrado);
+    while(contador < size){ ///mietras no sea el  size total del archivo hacer:
+        unidad =*(byte++); //unidad guarda un caracter
+        if(unidad == ','){ //si se consigue con el caracter ',' procesa la cadena
+        	direccion = memoriaCache.DirHexToDec(campo); //tranforma una direccion de memoria del string a un entero(Para trabajarlo mejor como binario)
+        	preEncotrado = memoriaCache.preBusqueda(direccion); //funcion para hacer la pre-busqueda y aumentar la taza de exitos
+        	if(preEncotrado){ //si prebusqueda es verdad
+        		memoriaCache.MemoriaAsociativaConjuntos(direccion,numeroConjuntos,preEncotrado); //ejecuto el metodo del simulador para la Cache por Conjuntos
 			}else{
-				if(contFallos > 1){
-        			memoriaCache.MemoriaAsociativaConjuntos(auxDireccion,numeroConjuntos,preEncotrado);
-        			contFallos--;	
+				if(contFallos > 1){ //si contador de fallos es mayor a 1 entra
+        			memoriaCache.MemoriaAsociativaConjuntos(auxDireccion,numeroConjuntos,preEncotrado); ////ejecuto el metodo del simulador para la Cache por Conjuntos
+        			contFallos--; //descrementa el contador de fallos
 				}else{
-					contFallos++;
+					contFallos++; //aumenta el contador de fallos
 				}
-				auxDireccion = direccion;
+				auxDireccion = direccion; //guardo la direccion en un auxiliar para asi ejecutar n-1 en caso de fallo
 			}
-        	campo = "";
+        	campo = ""; //Reinicio el string
 		}else{
-			campo += unidad;
+			campo += unidad; // sumo el caracter a la variable del string para unirlas 
 		}
-			contador++;
+			contador++; // aumento contador
     }
     
-    close(archivo);
+    close(archivo); // Cierro Archivo 
     
-    totales = memoriaCache.getMiss() + memoriaCache.getHit();
-    porcentaje = ((float)memoriaCache.getHit()/totales)*100;
+    totales = memoriaCache.getMiss() + memoriaCache.getHit(); //Calculo el total de la suma de los Acierto y Fallos
+    porcentaje = ((float)memoriaCache.getHit()/totales)*100; //saco el porcentaje de Aciertos
     
-    cout<<endl<<"\t+------------------------------------------+"<<endl;
-    cout<<"\t|     Cache Asociativa Por Conjuntos       |"<<endl;
-    cout<<"\t|------------------------------------------|"<<endl;
-    cout<<"\t|                                          |"<<endl;
-    cout<<"\t| Fallos:"<<memoriaCache.getMiss()<<"                            |"<<endl;
-    cout<<"\t| Acierto:"<<memoriaCache.getHit()<<"                          |"<<endl;
-    cout<<"\t|                                          |"<<endl;
-    cout<<"\t|------------------------------------------|"<<endl;
-    cout<<"\t| Porcentaje De Acierto: "<<porcentaje<<"%          |"<<endl;
-    cout<<"\t+------------------------------------------+"<<endl;
-}
+    cout<<endl<<"\t+------------------------------------------+"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|     Cache Asociativa Por Conjuntos       |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|------------------------------------------|"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|                                          |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t| Fallos:"<<memoriaCache.getMiss()<<"                             |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t| Acierto:"<<memoriaCache.getHit()<<"                          |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|                                          |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|------------------------------------------|"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t| Porcentaje De Acierto: "<<porcentaje<<"%          |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t+------------------------------------------+"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    
+} // Fin de Cache Asociativa Por Conjuntos
 
 
 void cacheCompletamenteAsociativa(int numeroBloques,int sizeBloques){
-	int archivo,contFallos = 0;
-    char *byte;
-    struct stat statbf;
+	int archivo,contFallos = 0; //Se declara variables
+    char *byte; //Se declara variables
+    struct stat statbf; //Se declara variables
     
-    archivo = open( "steam_games2023.csv" , O_RDONLY ); 
+    archivo = open( "steam_games2023.csv" , O_RDONLY ); //Se abre el archivo
     
-    if( archivo == -1 ){
-        cout << "No se entrar al steam_games"<<endl;
-        exit(1);
+    if( archivo == -1 ){ //Si el Archivo devuelve -1 significa que no se abrio el archivo
+        cout << "No se entrar al steam_games"<<endl; //Mensaje al Usuario
+        exit(1); //Cierra el Programa
     }
 
-    if( fstat( archivo , &statbf ) == -1 ){ 
-        cout << "Error al intentar obtener informacion de la estructura de datos."<<endl;
-        exit(1);
+    if( fstat( archivo , &statbf ) == -1 ){ //Si devuelve -1 significa que no se Pudo Obtener la informacion de la estructura de datos (stat)
+        cout << "Error al intentar obtener informacion de la estructura de datos."<<endl; //Mensaje al Usuario
+        exit(1); //Cierra el programa
     }
 
-    byte = (char*) mmap( NULL , statbf.st_size, PROT_READ, MAP_PRIVATE, archivo, 0); 
+    byte = (char*) mmap( NULL , statbf.st_size, PROT_READ, MAP_PRIVATE, archivo, 0); //Mapea la informacion en el apuntador a caracter
 
-    if( byte == MAP_FAILED ){
-        cout << "Hubo un error al mapear el steam_games en memoria"<<endl; exit(1);
+    if( byte == MAP_FAILED ){ //Si no se pudo mapear salta el mensaje al ususario 
+        cout << "Hubo un error al mapear el steam_games en memoria"<<endl; //Mensaje al Usuario
+		exit(1); //Cierra el programa
     }
     
-    Simulador memoriaCache(numeroBloques,sizeBloques);//numerode bloques && tam de bloques
-    float porcentaje = 0;
-	unsigned long int valor = 0,totales = 0,direccion = 0, auxDireccion = 0;
-    string campo;
-    char unidad;
-    bool preEncotrado = false;
-    size_t size = statbf.st_size, contador=0;
+    Simulador memoriaCache(numeroBloques,sizeBloques);//numerode bloques && tam de bloques y se declara variables
+    float porcentaje = 0; //Se declara variables
+	unsigned long int valor = 0,totales = 0,direccion = 0, auxDireccion = 0; //Se declara variables
+    string campo; //Se declara variables
+    char unidad; //Se declara variables
+    bool preEncotrado = false; //Se declara variables
+    size_t size = statbf.st_size, contador=0; //Se declara variables
     
 
     
-    while(contador < size){
-        unidad =*(byte++);
-        if(unidad == ','){
-        	direccion = memoriaCache.DirHexToDec(campo);
-        	preEncotrado = memoriaCache.preBusqueda(direccion);
-        	if(preEncotrado){
-        		memoriaCache.MemoriaCompletamenteAsociativa(direccion,preEncotrado);
+    while(contador < size){ //mietras no sea el el size total del archivo hacer:
+        unidad =*(byte++); //unidad guarda un caracter
+        if(unidad == ','){ //si se consigue con el caracter ',' procesa la cadena
+        	direccion = memoriaCache.DirHexToDec(campo); //tranforma una direccion de memoria del string a un entero(Para trabajarlo mejor como binario)
+        	preEncotrado = memoriaCache.preBusqueda(direccion); //funcion para hacer la pre-busqueda y aumentar la taza de exitos
+        	if(preEncotrado){ //si prebusqueda es verdad
+        		memoriaCache.MemoriaCompletamenteAsociativa(direccion,preEncotrado); //ejecuto el metodo del simulador para la Cache Completamente Asociativa
 			}else{
-				if(contFallos > 1){
-        			memoriaCache.MemoriaCompletamenteAsociativa(auxDireccion,preEncotrado);
-        			contFallos--;	
+				if(contFallos > 1){ //si contador de fallos es mayor a 1 entra
+        			memoriaCache.MemoriaCompletamenteAsociativa(auxDireccion,preEncotrado); //ejecuto el metodo del simulador para la Cache Completamente Asociativa
+        			contFallos--; //descrementa el contador de fallos	
 				}else{
-					contFallos++;
+					contFallos++; //aumenta el contador de fallos
 				}
-				auxDireccion = direccion;
+				auxDireccion = direccion; //guardo la direccion en un auxiliar para asi ejecutar n-1 en caso de fallo
 			}
-        	campo = "";
+        	campo = ""; //Reinicio el string
 		}else{
-			campo += unidad;
+			campo += unidad; // sumo el caracter a la variable del string para unirlas
 		}
-			contador++;
+			contador++; // aumento contador
     }
     
-    close(archivo);
+    close(archivo); // Cierro Archivo 
     
-    totales = memoriaCache.getMiss() + memoriaCache.getHit();
-    porcentaje = ((float)memoriaCache.getHit()/totales)*100;
+    totales = memoriaCache.getMiss() + memoriaCache.getHit(); //Calculo el total de la suma de los Acierto y Fallos
+    porcentaje = ((float)memoriaCache.getHit()/totales)*100; //saco el porcentaje de Aciertos
     
-    cout<<endl<<"\t+------------------------------------------+"<<endl;
-    cout<<"\t|     Cache Completamente Asociativa       |"<<endl;
-    cout<<"\t|------------------------------------------|"<<endl;
-    cout<<"\t|                                          |"<<endl;
-    cout<<"\t| Fallos:"<<memoriaCache.getMiss()<<"                            |"<<endl;
-    cout<<"\t| Acierto:"<<memoriaCache.getHit()<<"                          |"<<endl;
-    cout<<"\t|                                          |"<<endl;
-    cout<<"\t|------------------------------------------|"<<endl;
-    cout<<"\t| Porcentaje De Acierto: "<<porcentaje<<"%          |"<<endl;
-    cout<<"\t+------------------------------------------+"<<endl;
-}
+    cout<<endl<<"\t+------------------------------------------+"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|     Cache Completamente Asociativa       |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|------------------------------------------|"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|                                          |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t| Fallos:"<<memoriaCache.getMiss()<<"                             |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t| Acierto:"<<memoriaCache.getHit()<<"                          |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|                                          |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|------------------------------------------|"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t| Porcentaje De Acierto: "<<porcentaje<<"%          |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t+------------------------------------------+"<<endl; //Mensaje al Usuario (tabla de repuestas)
+} //Fin de Cache Completamente Asociativa
+
 
 void cacheDirecta(int numeroBloques,int sizeBloques){
-	int archivo,contFallos = 0;
-    char *byte;
-    struct stat statbf;
+	int archivo,contFallos = 0; //Se declara variables
+    char *byte; //Se declara variables
+    struct stat statbf; //Se declara variables
 	
-    archivo = open( "steam_games2023.csv" , O_RDONLY ); 
+    archivo = open( "steam_games2023.csv" , O_RDONLY ); //Se abre el archivo
     
-    if( archivo == -1 ){
-        cout << "No se entrar al steam_games"<<endl;
-        exit(1);
+    if( archivo == -1 ){ //Si el Archivo devuelve -1 significa que no se abrio el archivo
+        cout << "No se entrar al steam_games"<<endl; //Mensaje al Usuario
+        exit(1); //Cierra el programa
     }
 
-    if( fstat( archivo , &statbf ) == -1 ){ 
-        cout << "Error al intentar obtener informacion de la estructura de datos."<<endl;
-        exit(1);
+    if( fstat( archivo , &statbf ) == -1 ){ //Si devuelve -1 significa que no se Pudo Obtener la informacion de la estructura de datos (stat)
+        cout << "Error al intentar obtener informacion de la estructura de datos."<<endl; //Mensaje al Usuario
+        exit(1); //Cierra el programa
     }
 
-    byte = (char*) mmap( NULL , statbf.st_size, PROT_READ, MAP_PRIVATE, archivo, 0); 
+    byte = (char*) mmap( NULL , statbf.st_size, PROT_READ, MAP_PRIVATE, archivo, 0); //Mapea la informacion en el apuntador a caracter
 
-    if( byte == MAP_FAILED ){
-        cout << "Hubo un error al mapear el steam_games en memoria"<<endl; exit(1);
+    if( byte == MAP_FAILED ){ //Si no se pudo mapear salta el mensaje al ususario 
+        cout << "Hubo un error al mapear el steam_games en memoria"<<endl; //Mensaje al Usuario
+		exit(1); //Cierra el programa
     }
     
-    Simulador memoriaCache(numeroBloques,sizeBloques);//numerode bloques && tam de bloques
-    float porcentaje = 0;
-	unsigned long int valor = 0,totales = 0,direccion = 0,auxDireccion = 0;
-    string campo;
-    char unidad;
-    bool preEncotrado = false;
-    size_t size = statbf.st_size, contador=0;
-    
-    system("clear");
-    cout<<"\t\tCargando..."<<endl;
-    
-    while(contador < size){
-        unidad =*(byte++);
-        if(unidad == ','){
-        	direccion = memoriaCache.DirHexToDec(campo);
-        	preEncotrado = memoriaCache.preBusqueda(direccion);
-        	if(preEncotrado){
-        		memoriaCache.MemoriaDirecta(direccion,preEncotrado);
+    Simulador memoriaCache(numeroBloques,sizeBloques);//numerode bloques && tam de bloques //Se declara variables
+    float porcentaje = 0; //Se declara variables
+	unsigned long int valor = 0,totales = 0,direccion = 0,auxDireccion = 0; //Se declara variables
+    string campo; //Se declara variables
+    char unidad; //Se declara variables
+    bool preEncotrado = false; //Se declara variables
+    size_t size = statbf.st_size, contador=0; //Se declara variables
+       
+    while(contador < size){ //mietras no sea el el size total del archivo hacer:
+        unidad =*(byte++); //unidad guarda un caracter
+        if(unidad == ','){ //si se consigue con el caracter ',' procesa la cadena
+        	direccion = memoriaCache.DirHexToDec(campo); //tranforma una direccion de memoria del string a un entero(Para trabajarlo mejor como binario)
+        	preEncotrado = memoriaCache.preBusqueda(direccion); //funcion para hacer la pre-busqueda y aumentar la taza de exitos
+        	if(preEncotrado){ //si prebusqueda es verdad
+        		memoriaCache.MemoriaDirecta(direccion,preEncotrado); //ejecuto el metodo del simulador para la Cache Directa
 			}else{
-				if(contFallos > 1){
-        			memoriaCache.MemoriaDirecta(auxDireccion,preEncotrado);
-        			contFallos--;	
+				if(contFallos > 1){ //si contador de fallos es mayor a 1 entra
+        			memoriaCache.MemoriaDirecta(auxDireccion,preEncotrado); //ejecuto el metodo del simulador para la Cache Directa
+        			contFallos--; //descrementa el contador de fallos
 				}else{
-					contFallos++;
+					contFallos++; //aumenta el contador de fallos
 				}
-				auxDireccion = direccion;
+				auxDireccion = direccion; //guardo la direccion en un auxiliar para asi ejecutar n-1 en caso de fallo
 			}
-        	campo = "";
+        	campo = ""; //Reinicio el string
 		}else{
-			campo += unidad;
+			campo += unidad; // sumo el caracter a la variable del string para unirlas
 		}
-			contador++;
+			contador++; // aumento contador
     }
     
-    close(archivo);
+    close(archivo); // Cierro Archivo 
+     
+    totales = memoriaCache.getMiss() + memoriaCache.getHit(); //Calculo el total de la suma de los Acierto y Fallos
+    porcentaje = ((float)memoriaCache.getHit()/totales)*100; //saco el porcentaje de Aciertos
+    cout<<endl<<"\t+------------------------------------------+"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|            Cache Directa                 |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|------------------------------------------|"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|                                          |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t| Fallos:"<<memoriaCache.getMiss()<<"                             |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t| Acierto:"<<memoriaCache.getHit()<<"                          |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|                                          |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t|------------------------------------------|"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t| Porcentaje De Acierto: "<<porcentaje<<"%          |"<<endl; //Mensaje al Usuario (tabla de repuestas)
+    cout<<"\t+------------------------------------------+"<<endl; //Mensaje al Usuario (tabla de repuestas)
     
-    totales = memoriaCache.getMiss() + memoriaCache.getHit();
-    porcentaje = ((float)memoriaCache.getHit()/totales)*100;
-    cout<<endl<<"\t+------------------------------------------+"<<endl;
-    cout<<"\t|            Cache Directa                 |"<<endl;
-    cout<<"\t|------------------------------------------|"<<endl;
-    cout<<"\t|                                          |"<<endl;
-    cout<<"\t| Fallos:"<<memoriaCache.getMiss()<<"                            |"<<endl;
-    cout<<"\t| Acierto:"<<memoriaCache.getHit()<<"                          |"<<endl;
-    cout<<"\t|                                          |"<<endl;
-    cout<<"\t|------------------------------------------|"<<endl;
-    cout<<"\t| Porcentaje De Acierto: "<<porcentaje<<"%          |"<<endl;
-    cout<<"\t+------------------------------------------+"<<endl;
-    
-}
+} //Fin de Cache Directa
 /*******************************************************************************************************************************************************/
+
+/*******************************************************************************************************************************************************/
+										//OTROS
+										
 int validarNumero(string num){
-    int i, len;
-    len = num.size();
-    for (i = 0; i < len ; i++){
-        if (!(isdigit(num[i]))){
-            cout<<"!Solo se permiten numeros!"<<endl<<"Intente de nuevo: ";
-            return 0;
+    int i, len; //Se declara variables
+    len = num.size(); //len va a contener el size del string
+    for (i = 0; i < len ; i++){ //recorre desde la posicion 0 hasta el size del string
+        if (!(isdigit(num[i]))){ //verifica que sea numero 
+            cout<<"!Solo se permiten numeros!"<<endl<<"Intente de nuevo: "; //Mensaje al Usuario
+            return 0; // retorna 0 si consiguio un caracter
         }
     }
-	return 1;
+	return 1; //retorna 1 si todos los caracteres son numeros
 }
+
 
 int menu(){
-	int numero = -1;
-	string val;
-	cout<<endl<<"\t+------------------ MENU ------------------+"<<endl;
-    cout<<"\t|                                          |"<<endl;
-    cout<<"\t| [1] Cache Directa                        |"<<endl;
-    cout<<"\t| [2] Cache Asociativa Con Conjuntos       |"<<endl;
-    cout<<"\t| [3] Cache Completamente Asociativa       |"<<endl;
-    cout<<"\t| [4] Hacer todas                          |"<<endl;
-    cout<<"\t|                                          |"<<endl;
-    cout<<"\t+------------------------------------------+"<<endl;
-    cout<<"Opcion: ";
+	int numero = -1; //Se declara variables
+	string val; //Se declara variables
+	cout<<endl<<"\t+------------------ MENU ------------------+"<<endl; //Mensaje al Usuario (MENU)
+    cout<<"\t|                                          |"<<endl; //Mensaje al Usuario (MENU)
+    cout<<"\t| [1] Cache Directa                        |"<<endl; //Mensaje al Usuario (MENU)
+    cout<<"\t| [2] Cache Asociativa Con Conjuntos       |"<<endl; //Mensaje al Usuario (MENU)
+    cout<<"\t| [3] Cache Completamente Asociativa       |"<<endl; //Mensaje al Usuario (MENU)
+    cout<<"\t| [4] Hacer todas                          |"<<endl; //Mensaje al Usuario (MENU)
+    cout<<"\t| [5] Interactivo                          |"<<endl; //Mensaje al Usuario (MENU)
+    cout<<"\t|                                          |"<<endl; //Mensaje al Usuario (MENU)
+    cout<<"\t+------------------------------------------+"<<endl; //Mensaje al Usuario (MENU)
+    cout<<"Opcion: "; //Mensaje al Usuario
     do{
-        cin>>val;
-    	numero = validarNumero(val);
-    }while(numero == 0);
+        cin>>val; //lectura estandar de un string
+    	numero = validarNumero(val); // Valida si es numero
+    }while(numero == 0); // si es diferente de 0 se repite
     
-    numero = stoi(val);
-    system("clear");
+    numero = stoi(val); //transforma un string en entero
+    system("clear"); //borra la pantalla
     
-    return numero;
+    return numero; //retorna el numero entero 
 }
 
-void todas(){
-	int numeroBloques = 0,numeroConjuntos = 0,sizeBloques = 0,numero = 0;
-	string val;
-	do{
-		cout<<endl<<"\tIngrese el Numero de Bloques:";
-        cin>>val;
-    	numero = validarNumero(val);
-    }while(numero == 0);
-    numeroBloques = stoi(val);
+void interactivo(){
+    int numeroBloques = 0,sizeBloques = 0,numero = 0,cantidadElemento = 0,numeroConjuntos = 0,valor = 0,contadorAcierto = 1; //Se declara variables
+	unsigned long int direccion = 0;
+    string val; //Se declara variables
+    do{
+        cout<<endl<<"\t+----------- Selecione Una Cache ----------+"<<endl; //Mensaje al Usuario (MENU)
+        cout<<"\t|                                          |"<<endl; //Mensaje al Usuario (MENU)
+        cout<<"\t| [1] Cache Directa                        |"<<endl; //Mensaje al Usuario (MENU)
+        cout<<"\t| [2] Cache Asociativa Con Conjuntos       |"<<endl; //Mensaje al Usuario (MENU)
+        cout<<"\t| [3] Cache Completamente Asociativa       |"<<endl; //Mensaje al Usuario (MENU)
+        cout<<"\t|                                          |"<<endl; //Mensaje al Usuario (MENU)
+        cout<<"\t+------------------------------------------+"<<endl; //Mensaje al Usuario (MENU)
+        cout<<"Opcion: "; //Mensaje al Usuario
+        do{
+            cin>>val; //lectura estandar de un string
+            numero = validarNumero(val); // Valida si es numero
+        }while(numero == 0); // si es diferente de 0 se repite
+        
+        valor = stoi(val); //transforma un string en entero
+        system("clear"); //borra la pantalla
+    }while((valor < 1) || (valor > 3));
+
+
+    do{
+		cout<<endl<<"\tLa cantidad  de Elemento que desea ingresar :"; //mensaje para el Usuario
+        cin>>val; //lectura estandar de un string
+    	numero = validarNumero(val); // Valida si es numero
+    }while(numero == 0); // si es diferente de 0 se repite
+    cantidadElemento = stoi(val); //transforma un string en entero
     
     do{
-		cout<<endl<<"\tIngrese el size de Palabra:";
-        cin>>val;
-    	numero = validarNumero(val);
-    }while(numero == 0);
-    sizeBloques = stoi(val);
-     
-    do{
-		cout<<endl<<"\tIngrese el Numero de Conjuntos:";
-        cin>>val;
-    	numero = validarNumero(val);
-    }while(numero == 0);
-    numeroConjuntos = stoi(val);
+        cout<<endl<<"\tIngrese el Numero de Bloques:"; //mensaje para el Usuario
+        cin>>val; //lectura estandar de un string
+        numero = validarNumero(val); // Valida si es numero
+    }while(numero == 0); // si es diferente de 0 se repite
+    numeroBloques = stoi(val); //transforma un string en entero
         
-	cacheDirecta(numeroBloques,sizeBloques);
-	cachePorConjuntos(numeroBloques,sizeBloques,numeroConjuntos);
-	cacheCompletamenteAsociativa(numeroBloques,sizeBloques);
+
+    unsigned long int elementos[cantidadElemento];
+    Simulador memoriaCache(numeroBloques,sizeBloques);//numerode bloques && tam de bloques y Se declara variables
+
+	system("clear"); //borra la pantalla
+
+    for(int i = 0;i < cantidadElemento;i++ ){
+        do{
+            cout<<endl<<"\tIngrese la direccion "<<i+1<<":"; //mensaje para el Usuario
+            cin>>val; //lectura estandar de un string
+            numero = validarNumero(val); // Valida si es numero
+        }while(numero == 0); // si es diferente de 0 se repite
+        direccion = stoi(val);
+        elementos[i] = direccion;
+    }
+
+    switch(valor){
+        case 1:
+            for(int i = 0;i < cantidadElemento;i++ ){
+                memoriaCache.MemoriaDirecta(elementos[i],false);
+                if(memoriaCache.getHit() == contadorAcierto){
+                    cout<<"Acierto";
+                    contadorAcierto++;
+                }else{
+                    cout<<"Falso";
+                }
+                memoriaCache.imprimirCache();
+            }
+            break;
+            
+        case 2:
+            do{
+                cout<<endl<<"\tIngrese el Numero de Conjuntos:"; //mensaje para el Usuario
+                cin>>val; //lectura estandar de un string
+                numero = validarNumero(val); // Valida si es numero
+            }while(numero == 0); // si es diferente de 0 se repite
+            numeroConjuntos = stoi(val); //transforma un string en entero
+
+            for(int i = 0;i < cantidadElemento;i++ ){
+                memoriaCache.MemoriaAsociativaConjuntos(elementos[i],numeroConjuntos,false);
+                if(memoriaCache.getHit() == contadorAcierto){
+                    cout<<"Acierto";
+                     contadorAcierto++;
+                }else{
+                    cout<<"Falso";
+                }
+                memoriaCache.imprimirCache();
+            }
+            break;
+        case 3:
+            for(int i = 0;i < cantidadElemento;i++ ){
+                memoriaCache.MemoriaCompletamenteAsociativa(elementos[i],false);
+                if(memoriaCache.getHit() == contadorAcierto){
+                    cout<<"Acierto";
+                    contadorAcierto++;
+                }else{
+                    cout<<"Falso";
+                }
+                memoriaCache.imprimirCache();
+            }
+            break;
+    }
+    
 }
+

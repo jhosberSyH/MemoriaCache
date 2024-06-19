@@ -1,0 +1,19 @@
+-Miguel Romero 30.155.726
+-Jhosber Ynojosa 31.116.618				
+
+				Sistema operativos
+
+Programa solo se ejecuta con exito en sistemas operativos linux.
+					
+				COMPILAR Y EJECUTAR
+-Asegurarse que el archivo este extraido.
+
+-se compila con el siguiente comando "make".
+
+-se ejecuta con el siguiente comando "./RUN".
+
+				LIMITACIONES
+*Maximos de bloques es de 600.
+
+*No tendria mas limitaciones.
+		
